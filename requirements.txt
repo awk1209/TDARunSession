@@ -1,0 +1,7 @@
+# TDA v3.1 run surface — required to read the player lists (.xlsx) and the draws PDFs
+openpyxl
+pypdfium2
+
+# Optional — only for PDF export of draw sheets; every HTML path works without them
+# cairosvg
+# pypdf

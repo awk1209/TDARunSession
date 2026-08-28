@@ -1,0 +1,549 @@
+{
+  "schema": "td-setup/v1",
+  "slate": {
+    "schema": "td-resource-slate/v1",
+    "tournament": "Wilson World Tennis Classic",
+    "dates": [
+      "2027-01-22",
+      "2027-01-23",
+      "2027-01-24",
+      "2027-01-25",
+      "2027-01-26",
+      "2027-01-27",
+      "2027-01-28",
+      "2027-01-29",
+      "2027-01-30",
+      "2027-01-31"
+    ],
+    "daily_start": "08:00",
+    "daily_end": "18:00",
+    "end_of_day_buffer_minutes": 45,
+    "locations": [
+      {
+        "id": "MHCC",
+        "name": "MHCC",
+        "lit_courts": 7,
+        "lights_on": "16:00",
+        "physical_courts": 15,
+        "available": {
+          "2027-01-22": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-23": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-24": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-25": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-26": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-27": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-28": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-29": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-30": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          },
+          "2027-01-31": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "18:00",
+            "morning_courts": 9,
+            "morning_until": "11:00"
+          }
+        }
+      },
+      {
+        "id": "ORLP",
+        "name": "ORLP",
+        "physical_courts": 15,
+        "available": {
+          "2027-01-22": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-23": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-24": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-25": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-26": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-27": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-28": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-29": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-30": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-31": {
+            "courts": 15,
+            "start": "08:00",
+            "end": "16:00"
+          }
+        }
+      },
+      {
+        "id": "PVCC",
+        "name": "PVCC",
+        "physical_courts": 10,
+        "available": {
+          "2027-01-22": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-23": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-24": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-25": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-26": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-27": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-28": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-29": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-30": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-31": {
+            "courts": 10,
+            "start": "08:00",
+            "end": "16:00"
+          }
+        }
+      },
+      {
+        "id": "MDS",
+        "name": "MDS",
+        "physical_courts": 8,
+        "available": {
+          "2027-01-22": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-23": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-24": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-25": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-26": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-27": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-28": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-29": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-30": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-31": {
+            "courts": 8,
+            "start": "08:00",
+            "end": "16:00"
+          }
+        }
+      },
+      {
+        "id": "SCC",
+        "name": "SCC",
+        "physical_courts": 6,
+        "available": {
+          "2027-01-22": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-23": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-24": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-25": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-26": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-27": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-28": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-29": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-30": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          },
+          "2027-01-31": {
+            "courts": 6,
+            "start": "08:00",
+            "end": "16:00"
+          }
+        }
+      }
+    ],
+    "transit_minutes": {
+      "MDS|MHCC": 20,
+      "MDS|ORLP": 20,
+      "MDS|PVCC": 20,
+      "MDS|SCC": 20,
+      "MHCC|ORLP": 20,
+      "MHCC|PVCC": 20,
+      "MHCC|SCC": 20,
+      "ORLP|PVCC": 20,
+      "ORLP|SCC": 20,
+      "PVCC|SCC": 20
+    }
+  },
+  "constraints": {
+    "schema": "td-constraints/v1",
+    "min_start_to_start_minutes": 180,
+    "match_caps": {
+      "mode": "flat",
+      "age_based": {
+        "le55": 6,
+        "60to80": 4,
+        "ge85": 3
+      },
+      "flat": 1
+    },
+    "same_day_finish": {
+      "divisions": [],
+      "gap_minutes": 150
+    },
+    "mixed_level_1": {
+      "divisions": []
+    },
+    "finals_earliest": "09:00",
+    "day_shape": {
+      "order": [
+        "singles",
+        "mixed",
+        "doubles"
+      ],
+      "on_no_slot": "place_and_record"
+    },
+    "day_bands": {
+      "singles_by": "09:00",
+      "mixed_at": "12:00",
+      "doubles_from": "15:00",
+      "scope": "triple_days"
+    },
+    "venue_rules": {
+      "main_site_ages": [
+        80,
+        85,
+        90
+      ],
+      "main_site_finals": true,
+      "main_site_l1_mixed": true,
+      "l1_mixed_latest_start": "14:00",
+      "rank_order": true,
+      "peak_window": {
+        "start": "15:00",
+        "end": "16:00",
+        "max_starts": 9
+      }
+    },
+    "match_minutes": 90,
+    "matches_per_day_target": 125,
+    "finals_per_day": {
+      "singles": 9,
+      "doubles": 4
+    },
+    "placement_policy": {
+      "stage_multidivision_early": true,
+      "locals_early": true
+    },
+    "earliest_start_by_age": [
+      {
+        "age_min": 80,
+        "earliest": "09:30"
+      }
+    ],
+    "locality": {
+      "home_cities": [
+        "Rancho Mirage",
+        "Palm Desert",
+        "Palm Springs",
+        "Cathedral City",
+        "Indian Wells",
+        "La Quinta",
+        "Indio",
+        "Coachella",
+        "Mecca",
+        "Desert Hot Springs",
+        "Thousand Palms",
+        "Bermuda Dunes",
+        "Thermal"
+      ],
+      "commuter_cities": [
+        "Twentynine Palms",
+        "Yucca Valley",
+        "Joshua Tree",
+        "Beaumont",
+        "Hemet",
+        "San Jacinto",
+        "Idyllwild",
+        "Temecula",
+        "Murrieta",
+        "Perris",
+        "Moreno Valley",
+        "Riverside",
+        "Corona",
+        "Menifee",
+        "Wildomar",
+        "Lake Elsinore",
+        "Norco",
+        "San Bernardino",
+        "Redlands",
+        "Yucaipa",
+        "Big Bear Lake",
+        "Fontana",
+        "Rancho Cucamonga",
+        "Ontario",
+        "Chino",
+        "Chino Hills",
+        "Pomona",
+        "Claremont",
+        "Diamond Bar",
+        "Walnut",
+        "Anaheim",
+        "Santa Ana",
+        "Irvine",
+        "Orange",
+        "Fullerton",
+        "Mission Viejo",
+        "Lake Forest",
+        "Tustin",
+        "Costa Mesa",
+        "Huntington Beach",
+        "Newport Beach",
+        "Laguna Beach",
+        "Escondido",
+        "Fallbrook",
+        "San Marcos",
+        "Vista",
+        "Victorville",
+        "Apple Valley",
+        "Hesperia",
+        "Barstow",
+        "El Centro",
+        "Brawley",
+        "Calipatria",
+        "Blythe",
+        "Palmdale",
+        "Lancaster",
+        "San Diego",
+        "Carlsbad",
+        "Oceanside",
+        "Encinitas",
+        "Poway",
+        "Long Beach",
+        "Los Angeles",
+        "Pasadena",
+        "Glendale",
+        "Burbank",
+        "Torrance",
+        "Compton",
+        "Downey",
+        "Whittier",
+        "Santa Monica",
+        "Culver City",
+        "El Segundo",
+        "Norwalk",
+        "La Habra"
+      ],
+      "home_section": ""
+    }
+  },
+  "added_divisions": [
+    {
+      "name": "Men's 45 & over doubles",
+      "level": "2",
+      "teams": 2,
+      "bracket": 4,
+      "format": "single_elim"
+    },
+    {
+      "name": "Mixed 55 & over doubles",
+      "level": "1",
+      "teams": 14,
+      "bracket": 16,
+      "format": "single_elim"
+    },
+    {
+      "name": "Mixed 65 & over doubles",
+      "level": "1",
+      "teams": 12,
+      "bracket": 16,
+      "format": "single_elim"
+    },
+    {
+      "name": "Mixed 75 & over doubles",
+      "level": "1",
+      "teams": 10,
+      "bracket": 16,
+      "format": "single_elim"
+    },
+    {
+      "name": "Mixed 85 & over doubles",
+      "level": "1",
+      "teams": 5,
+      "bracket": 8,
+      "format": "single_elim"
+    },
+    {
+      "name": "Mixed 90 & over doubles",
+      "level": "1",
+      "teams": 3,
+      "bracket": 3,
+      "format": "round_robin"
+    }
+  ]
+}
