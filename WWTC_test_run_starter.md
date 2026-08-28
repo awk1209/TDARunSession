@@ -1,6 +1,19 @@
-# WWTC Scheduler — Guided Run (Runbook 8.8)
+# WWTC Scheduler — Guided Run (Runbook 8.9)
 
-*TDA V3.1 · **Runbook 8.8 (2026-08-27) — the growth pass.** Step 3.6 gains the half of the growth
+*TDA V3.1 · **Runbook 8.9 (2026-08-28) — the refusal answers in four figures, and the run reads it
+as scripted.** No lane change, no new courier stop, no new module. **The defect:** on 2026-08-28 a
+September re-run refused, and the section of the report that is supposed to say what to book
+carried **none of the four figures a director needs** — not how many courts, not on which days,
+not at what times, not for which divisions — while five of the six moves this step already
+scripted existed only as prose and **two of them were skipped**. **What changes here:** Step 2's
+refusal branch becomes a numbered ⛔ checklist of six moves, every one a MUST, with a four-figure
+readback template whose every slot is read off the payload at run time and never typed; the
+editor handover and the his-decision ask are held as text by a harness so a session cannot
+quietly drop them again; a standing rule binds every re-test and what-if that ends in a refusal
+to print the fresh report verbatim; and Step 3.5's surplus answer gains the three-slot readback
+the deficit direction already had.*
+
+*Previously — **Runbook 8.8 (2026-08-27) — the growth pass.** Step 3.6 gains the half of the growth
 answer a bracket division never had: the readback now says the day play would begin once a
 division outgrows its draw, or reads a sentence where his week has no room for the extra round —
 and the calendar he shelves records what produced it, so a January reader can tell a day that was
@@ -918,37 +931,72 @@ became a recommendation once already.)*
   immediate; nothing tells him which days hold.
 - **`Hold here — not yet`** → stop and wait.
 
-> **If the week cannot be scheduled at all (NOMAP-1).** The check runs a full build first, and
-> that build can come back saying this week has more matches than its courts can hold. When it
-> does, `plan` carries **`week_refusal`** and **no `engine_check`** — the check never ran, so
-> there is no verdict, and there are no chip numbers to report. Do this, in this order:
+> **⛔ IF THE WEEK CANNOT BE SCHEDULED AT ALL (NOMAP-1) — THE SIX MOVES, EVERY ONE A MUST.** The
+> check runs a full build first, and that build can come back saying this week has more matches
+> than its courts can hold. When it does, `plan` carries **`week_refusal`** and **no
+> `engine_check`** — the check never ran, so there is no verdict, and there are no chip numbers to
+> report.
+>
+> ⚠ **THESE SIX ARE A CHECKLIST, NOT ADVICE, AND SKIPPING ONE IS SKIPPING THE STEP.** Measured on
+> the 2026-08-28 run: five of these moves already existed here as prose and **two of them were
+> skipped** — the draft map was never handed over and the fixes were never put as his decision.
+> Prose did not hold the session to the script, so this is numbered, and moves 4 and 5 — the two
+> that were dropped — are held as text by `tests/answer1_four_figures.py` part E.
 >
 > 1. **Say it plainly, first sentence:** the week as supplied cannot be scheduled, so the finals
 >    days could not be checked against a build.
 > 2. **Print `plan["week_refusal"]["report"]` VERBATIM.** Do not summarise it, re-order it, or
 >    translate it. It names the reasons and then every fix that was tried — each one re-run for
 >    real against these entries, before you saw it — and it says which ones clear the week.
->    **It now ends with a further section, *"What it would take"*, naming how many courts, at
->    which club, on which days and in which part of the day** — again each figure re-run for real
->    before you saw it. Print it with the rest, verbatim, and treat it exactly as the list above:
->    it is his decision, not a recommendation to make for him. Where it says no number of courts
->    fixed the week, **that is the answer** and it is reported as plainly as any other — it also
->    says what it did not try, and those bounds are part of the answer too.
-> 3. **Still hand over the editor.** The draft map does not come from the build, so it survived:
+>    **It ends with a further section, *"What it would take"*, naming how many courts, at which
+>    club, on which days, in which part of the day and for which divisions** — again each figure
+>    re-run for real before you saw it. Print it with the rest, verbatim, and treat it exactly as
+>    the list above: it is his decision, not a recommendation to make for him. Where it says no
+>    number of courts fixed the week, **that is the answer** and it is reported as plainly as any
+>    other — it also says what it did not try, and those bounds are part of the answer too.
+> 3. **⛔ READ THE FOUR FIGURES BACK, in his own terms, off the payload.** Printing the report is
+>    not the same as telling him what to book, and on 2026-08-28 the printed report carried **none
+>    of the four figures** in its instruction section. Read `plan["week_refusal"]["shortfall"]`
+>    and say, once per reason it carries:
+>
+>    > To make this week fit you would need **`<courts>` more courts** at **`<club>`**,
+>    > **`<hours>`**, on **`<days>`**, for **`<divisions>`**.
+>
+>    And where the club is already at everything it owns, the same four figures with what he
+>    cannot do said out loud:
+>
+>    > **`<club>`** is at every court it owns **`<hours>`**. It would take **`<courts>` more
+>    > courts than it owns**, on **`<days>`**, for **`<divisions>`** — and that is not a booking
+>    > you can make. The two ways forward are to move a final off **`<days>`** and check again, or
+>    > to change what **`<club>`** gives you.
+>
+>    ⚠ **EVERY `<slot>` IS READ AT RUN TIME AND NONE OF THEM IS EVER TYPED.** `<courts>` ·
+>    `<club>` · `<hours>` · `<days>` · `<divisions>` come off `shortfall["reasons"]` — the answer
+>    row where the club has room (`answer`), the beyond-what-it-owns row where it does not
+>    (`beyond_owned`), and the club's own figures either way. A session that types a number here
+>    reads it aloud to a real director (ruling 12). Where a row carries **no** figure, say that —
+>    with what was tried and what was not — and never substitute one.
+> 4. **Still hand over the editor.** The draft map does not come from the build, so it survived:
 >    render it the "Skip the check" way (`finals_plan.render_finals_console(plan)`, the same line
 >    that step's option already uses — with no `engine_check` on the doc that is what the guided
 >    wrapper returns anyway) and give the TD the link. **Name it before the link:** *"this is the
 >    map as drafted — it has not been checked, because the week as supplied cannot be scheduled."*
-> 4. **Stop, and put the fixes to the TD as HIS decision.** Read out what the report lists and ask
+> 5. **Stop, and put the fixes to the TD as HIS decision.** Read out what the report lists and ask
 >    which he wants. **Never pick one for him**, never rank them beyond the order they print in,
 >    and never quote a figure from this document — the report's own numbers are the only ones.
->    A row that reads *not tried* means something cheaper already fixes the week; it does not mean
->    it failed.
-> 5. **When he changes something, the answer is a fresh check.** He adjusts the venues, days or
+>    **One ask, and then stop and wait.** A row that reads *not tried* means something cheaper
+>    already fixes the week; it does not mean it failed.
+> 6. **When he changes something, the answer is a fresh check.** He adjusts the venues, days or
 >    match length in the Setup console, couriers a new `td-setup/v1`, and you **loop back to
 >    Step 2** and run it again — the same seeded re-check the step already offers after an edit.
 >    **Name the wait again before starting it.** Nothing here is re-run in the browser: the
 >    console never talks to the engine.
+>
+> ⚠ **EVERY RE-TEST OR WHAT-IF THAT ENDS IN A REFUSAL PRINTS THE FRESH REPORT VERBATIM.** You may
+> summarise on top of the report; never instead of it. This binds the loop above, the re-check
+> after any edit, and every `try_change` at Step 3.5 — measured 2026-08-28, when the second
+> refusal of a run was summarised freelance and the director never saw what the tool actually
+> said.
 >
 > **Do not go on to Step 3 or Step 4 on a refused week.** The build there will refuse for the same
 > reason, and every later step would be running against a week that has no schedule.
@@ -1001,9 +1049,11 @@ one. Say so plainly and offer the check:
 > run it: about ten minutes, and it builds your whole tournament to grade them.
 
 **BRANCH 3 — the week was refused (NOMAP-1).** The check ran and returned **no verdict at all**:
-`plan` carries `week_refusal` and no `engine_check`. He gets the refusal report printed verbatim
-(the blockquote above scripts that) **and an unchecked draft map**, which survives because it is
-desk-derived rather than built:
+`plan` carries `week_refusal` and no `engine_check`. He gets the refusal report printed verbatim,
+**the four figures read back to him**, and an **unchecked draft map**, which survives because it
+is desk-derived rather than built. ⚠ **The six-move checklist in the blockquote above is what
+scripts this, and it is a checklist** — the words below are move 1 and nothing more; moves 2 to 6
+still all have to happen:
 
 > The week as supplied cannot be scheduled, so I could not check the finals days against a build.
 > The report below says why, and every fix in it was re-run for real before you saw it.
@@ -1255,6 +1305,26 @@ he does not book "courts", he books a club, for certain days, for certain hours.
   his busiest day past his own figure is discovered in January by a player who planned around
   Thursday and finds out they play Friday. A zero-cost release says **"nothing else moves"** —
   say that too, because silence and not-checked must never sound the same.
+
+  **⛔ THE SURPLUS READBACK — THREE SLOTS, ALL THREE SAID, EACH WITH ITS COST.** The deficit
+  direction has a scripted readback and this one did not, so it was read out however the session
+  felt like reading it. Say all three lines even where one is empty — an unsaid line reads as
+  nothing to release, which is a different answer from none found:
+
+  > You have **`<courts>` courts** more than this tournament needs at **`<club>`** — releasing
+  > them **`<cost>`**.
+  > You have **`<club_days>` club-days** you could give back — **`<club>`** on **`<days>`** —
+  > releasing them **`<cost>`**.
+  > You have **`<hours>`** of opening you could give back at **`<club>`**, **`<hours_when>`** —
+  > releasing them **`<cost>`**.
+
+  ⚠ **EVERY `<slot>` IS READ OFF `surplus` AT RUN TIME AND NONE OF THEM IS EVER TYPED**, the same
+  discipline the deficit readback carries. `<cost>` is the line's own `cost` — where it is zero,
+  say **"nothing else moves"** in those words.
+  ⚠ **WHERE `register` READS `facts`, READ `why_no_release` OUT VERBATIM IN PLACE OF ALL THREE
+  LINES** and recommend nothing. No safe level was built, so there is no verified margin behind
+  any release, and the three lines above would each be a recommendation the run cannot stand
+  behind.
 - **`club_not_needed`** — ⚠ **A FACT WITH ITS CONSEQUENCE, NEVER ADVICE** (R11). Say the
   arithmetic and stop. Never *"you don't need it"*. A club is more than its courts, and the tool
   knows the arithmetic and nothing about the relationship.
@@ -1307,6 +1377,12 @@ answer = wwtc_pipeline.try_change(
   carries `source` (`"caller"` = his rules, `"defaults"` = the tool's) and `edited` — the rules
   his idea actually moved. Say which, out loud: *"tested on your rules, with that one rule
   switched off."*
+- ⚠ **EVERY RE-TEST OR WHAT-IF THAT ENDS IN A REFUSAL PRINTS THE FRESH REPORT VERBATIM.** You may
+  summarise on top of the report; never instead of it. His idea gets the same treatment the first
+  refusal got — the whole report, then the four figures read back — because a summary is where the
+  numbers he would act on go missing. Measured 2026-08-28: the what-if re-test was summarised
+  freelance and the fresh report was never printed, so the one thing that changed between the two
+  runs was never on his screen.
 - ⚠ **A court figure derived in chat is exactly how a wrong booking reaches a club.** One real
   build, about half a second on a September field. Never arithmetic in the conversation.
 - ⚠ **It takes COURT edits and RULE edits**, and both matter — the nine bendable rules are rules,

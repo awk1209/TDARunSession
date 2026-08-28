@@ -1105,14 +1105,53 @@ def band_yields_of(result):
             if r.get("gate", _BAND_GATES[0]) in _BAND_GATES]
 
 
+def _name_some(divisions):
+    """`a`, `a, b`, `a, b, c`, `a, b, c and N more` — the refusal's one way of naming divisions.
+
+    Lifted out of `check_week`'s finals sentence, which has always read this way, so ANSWER-1's
+    three new naming sites cannot drift from it. Byte-for-byte what that sentence built inline."""
+    divisions = list(divisions)
+    return ", ".join(divisions[:3]) + (f" and {len(divisions) - 3} more"
+                                       if len(divisions) > 3 else "")
+
+
+def _divisions_of(mids, events):
+    """The divisions behind a list of match ids, read off the result's own event list.
+
+    ANSWER-1 §0.3. `E{n}-R{r}-M{m}` indexes `cfg.events`, and `result["events"]` is that same
+    list of names (`scheduler_multi:1343`), so a refusal can name what is stuck WITHOUT the
+    config — which is what lets every caller of `check_week` say the same sentence. A round-robin
+    id is `{prefix}-M{ri}-{a}v{b}` and its `E{n}` prefix reads the same way.
+
+    An id that cannot be read is skipped rather than guessed at: the count of stuck matches is
+    the figure that must never be wrong, and it is taken from the list itself."""
+    names, events = [], list(events or [])
+    for mid in mids:
+        try:
+            idx = int(str(mid).split("-")[0][1:]) - 1
+        except (ValueError, IndexError):
+            continue
+        if 0 <= idx < len(events) and events[idx] not in names:
+            names.append(events[idx])
+    return sorted(names)
+
+
 def check_week(result):
     """The rung-2 tests, in plain English. An empty list means the week can be published."""
     reasons = []
     unplaced = (result or {}).get("unplaced") or []
     if unplaced:
+        # ANSWER-1 A2 — THE UNPLACED SENTENCE NAMES ITS DIVISIONS, the shape the finals sentence
+        # below has always used. The two halves of a refusal were asymmetric by construction: the
+        # finals half named its divisions and this one named a bare count, so a director told
+        # "24 matches have no place to play" had no way to know WHICH tournament was stuck. The
+        # names are read off the result, never off a config, so `try_change`, the remedy probes
+        # and the refusal itself all say the same sentence.
+        divisions = _divisions_of(unplaced, (result or {}).get("events"))
+        named = f" ({_name_some(divisions)})" if divisions else ""
         reasons.append(
             f"{len(unplaced)} match{'es have' if len(unplaced) != 1 else ' has'} no place to "
-            f"play. Every match has to fit for the week to work.")
+            f"play{named}. Every match has to fit for the week to work.")
     n = len(band_yields_of(result))
     if n > BAND_YIELD_CEILING:
         reasons.append(
@@ -1140,8 +1179,7 @@ def check_week(result):
             if not rows:
                 continue
             divisions = sorted({b["event"] for b in rows})
-            named = ", ".join(divisions[:3]) + (f" and {len(divisions) - 3} more"
-                                                if len(divisions) > 3 else "")
+            named = _name_some(divisions)
             reasons.append(
                 f"{len(rows)} {one if len(rows) == 1 else many} would play away from {main} "
                 f"({named}). Every {one} plays at {main} — that rule does not bend, so this week "
@@ -1406,9 +1444,17 @@ def _finish_sat(row, names):
         row["note"] = ((row["note"] + " ") if row["note"] else "") + (
             "These were found one at a time and then built together, so a smaller combination "
             "may exist and was not searched for.")
-    row["note"] = ((row["note"] + " ") if row["note"] else "") + (
-        f"Bounds: {row['single_day_bound']} single club-day(s) tried, "
-        f"{row['greedy_bound']} accumulated round(s).")
+    # ANSWER-1 A5 — THE BOUNDS ARE SAID ONLY WHERE THERE WAS A SEARCH TO BOUND. Measured on the
+    # committed 2027 seed, where every club is open on every one of the ten days: the row said
+    # "there is no closed day to open" and then "Bounds: 0 single club-day(s) tried, 0
+    # accumulated round(s)" — a limit quoted on a search that had nothing to look at. Zero bounds
+    # AND zero builds is the one shape that means the search space was empty; a stage-1 sweep that
+    # found nothing worth opening has builds behind it and still reports its zeros, because there
+    # the zeros say stage 2 never ran and that IS information.
+    if row["single_day_bound"] or row["greedy_bound"] or row["builds"]:
+        row["note"] = ((row["note"] + " ") if row["note"] else "") + (
+            f"Bounds: {row['single_day_bound']} single club-day(s) tried, "
+            f"{row['greedy_bound']} accumulated round(s).")
     if row["not_tried"]:
         row["note"] += " " + " ".join(n[0].upper() + n[1:] + "." for n in row["not_tried"])
     return row
@@ -1716,6 +1762,21 @@ def _diag_band_words(band):
             "lit": "after the lights come on"}[band]
 
 
+def _diag_when(band, hour):
+    """The band as the director hears it — HIS boundary hour where the day cells agree on one,
+    the band's own words where they do not.
+
+    ANSWER-1 decision 2 as ruled: "at what time(s)" ships as the day's bands with his own
+    boundary hours, which is the finest unit the capacity vocabulary can express AND re-run.
+    Lifted out of the answer sentence, which has always read this way, so the out-of-room
+    sentence cannot drift from it."""
+    if not hour:
+        return _diag_band_words(band)
+    return (f"before {hour}" if band == "early"
+            else f"from {hour}" if band == "main"
+            else f"after {hour}")
+
+
 def _diag_band_hour(slate, club, band, days=None):
     """The band boundary in the DIRECTOR'S OWN NUMBERS, read off his slate — never the tool's.
 
@@ -1795,7 +1856,8 @@ def _diag_stage1(result, slate, cfg):
             # The refusal NAMES both sides of the trade and never takes it — R13 is untouched.
             "alternative": {"count": len(rows), "noun": one if len(rows) == 1 else many,
                             "venues": pushed_to},
-            "answer": None, "tried": [], "not_tried": [], "out_of_room": None})
+            "answer": None, "tried": [], "not_tried": [], "out_of_room": None,
+            "beyond_owned": None})
 
     unplaced = (result or {}).get("unplaced") or []
     if unplaced:
@@ -1832,6 +1894,7 @@ def _diag_stage1(result, slate, cfg):
             "divisions": sorted(divisions),
             "alternative": None,
             "answer": None, "tried": [], "not_tried": [], "out_of_room": None,
+            "beyond_owned": None,
             "_unreadable": unreadable})
 
     yields = len(band_yields_of(result))
@@ -1847,7 +1910,7 @@ def _diag_stage1(result, slate, cfg):
             "not_tried": ["more courts were not tried against the early-start promise: those "
                           "matches already have a court, so this is a clock question and not a "
                           "court one"],
-            "out_of_room": None})
+            "out_of_room": None, "beyond_owned": None})
     return reasons
 
 
@@ -1982,6 +2045,136 @@ def _diag_rungs(reason, slate, sweep_days):
     return rungs
 
 
+# ANSWER-1 decision 1 (Operator, 2026-08-28, option 1) — HOW FAR PAST ITS OWN COURTS THE LADDER
+# GOES once every in-bounds configuration is exhausted. Four, and the bound is REPORTED exactly
+# as the day sweep's one-court bound is: a director told "not within four courts of what this
+# club owns" knows the answer is a different club or a different week, and one told nothing at
+# all knows only that the tool stopped.
+_DIAG_BEYOND_MAX = 4
+
+
+def _diag_beyond_edits(base, club, band, days, target):
+    """The per-day edits that put exactly `target` courts in `band` on each of `days`.
+
+    ⚠ PER DAY, NEVER ONE UNIFORM DELTA. `_court_slate` adds a delta to what a cell already
+    carries, and the days in scope do not carry the same counts — one delta across them would
+    leave the quieter days BELOW the figure being reported, which is the interpolation OI-56
+    forbids. Every day is raised to the figure itself, so the configuration built is the
+    configuration named.
+
+    ⚠ A CLUB THAT OWNS `target` COURTS HAS THEM ALL DAY. So an early-band figure raises the main
+    band with it wherever the main band sits below it: a morning count above the day's own court
+    count is not a booking anyone could make, and building one would price a week that cannot
+    exist."""
+    edits = []
+    for loc in base["locations"]:
+        if loc["id"] != club:
+            continue
+        for day, cell in (loc.get("available") or {}).items():
+            if day not in days:
+                continue
+            if band == "early":
+                # A day with no morning step-up has no early band to widen — the same skip
+                # `_court_slate` makes, made here so the edit list says what will happen.
+                if "morning_courts" in cell:
+                    edits.append((club, day, "early",
+                                  target - (cell.get("morning_courts") or 0)))
+                if (cell.get("courts") or 0) < target:
+                    edits.append((club, day, "main", target - (cell.get("courts") or 0)))
+            else:
+                edits.append((club, day, "main", target - (cell.get("courts") or 0)))
+    return edits
+
+
+def _diag_beyond_owned(reason, probe, base, club, owns, rung, out, budget_builds):
+    """ANSWER-1 A3 — the ladder that continues PAST what the club owns, and the ONE new
+    computation in this build.
+
+    Today's search stops at the ceiling, and the director is told he is out of room with no
+    figure at all: not how many courts, not on which day, not at what time, not for which
+    division. He cannot buy a court his club does not have — but the SIZE of the gap is what
+    decides whether the answer is a neighbouring club or a different week, and that is a figure
+    only a build can give him.
+
+    ⚠ IT IS A HYPOTHETICAL AND THE SENTENCE SAYS SO. Nothing here is a booking to make; the
+    report says "you cannot book that" in the same breath as the number.
+
+    ⚠ OI-56'S PROPERTIES CARRY OVER VERBATIM, because the supply is the same non-monotone supply:
+    every figure is BUILT at exactly that figure — no interpolation, no "at least N" — and graded
+    on the WHOLE refusal (`holds`, which is `check_week` empty AND no hard breach), never on the
+    one reason the ladder was entered for.
+
+    Returns the answer, or None with the bound recorded on the reason's `not_tried`.
+    """
+    band = rung["band"]
+    open_days = sorted({day for loc in base["locations"] if loc["id"] == club
+                        for day in (loc.get("available") or {})})
+    if not open_days:
+        return None
+    named = [d for d in (rung["days"] or []) if d in open_days]
+
+    # ⚠ THE IN-BOUNDS LADDER'S OWN SCOPE ORDER, CONTINUED — and it is NOT optional. Measured on
+    # the flat-at-ceiling bench at 0.52: the days this reason names carry no answer at any of the
+    # four figures, and ONE court beyond what the club owns, on every day of the week, clears
+    # the whole refusal. A ladder that stopped at the broken rung's own days would have reported
+    # "no number of courts" over an answer that exists — which is the defect this build is
+    # closing, rebuilt one level down. Named days first at every figure, then the week, exactly
+    # as `_diag_rungs` exhausts its named rungs before it proposes a week-wide booking.
+    #
+    # ⚠ `days: None` MEANS THE WHOLE WEEK, the same way the in-bounds `answer` says it. No new
+    # vocabulary, and the renderer's existing "on every day of the week" reads it already.
+    # ⚠ `builds` IS REAL BUILDS, NEVER RUNGS CLIMBED. `court_probe` caches, and the reasons of one
+    # refusal share a club — so the three reasons of the flat-at-ceiling bench each climb five
+    # rungs and the week-wide rung is built ONCE for all three. Reporting five apiece would
+    # inflate this build's own cost by more than half, on the one figure that exists to state it.
+    spent = probe.used
+    for scope_days in ([named] if named else []) + [None]:
+        for k in range(1, _DIAG_BEYOND_MAX + 1):
+            edits = _diag_beyond_edits(base, club, band, scope_days or open_days, owns + k)
+            if not edits:
+                continue
+            try:
+                r = probe.at(edits)
+            except _CBExhausted:
+                out["partial"] = True
+                reason["not_tried"].append(
+                    f"the search stopped at its build budget of {budget_builds} before it could "
+                    f"say how many courts beyond the {owns} {reason['club_name']} owns this "
+                    f"week needs")
+                return None
+            if r.get("holds"):
+                if scope_days is None:
+                    _diag_beyond_sweep_note(reason, club_name=reason["club_name"], owns=owns)
+                return {"courts": k, "days": list(scope_days) if scope_days else None,
+                        "band": band, "hour": _diag_band_hour(base, club, band, scope_days),
+                        "divisions": list(reason["divisions"]),
+                        "builds": probe.used - spent}
+    # NOTHING WITHIN FOUR. `null`, and the BOUND is reported — the day sweep's one-court bound
+    # verbatim ("a silent cap reads as 'we checked everything' when we did not").
+    #
+    # ⚠ WHAT GOES IN `not_tried` IS THE CAP, NEVER "nothing was found". OI-56's own rule, kept:
+    # the sentence already says the week did not fit at any of them, and saying it twice is the
+    # padding LANG-1 rule 6 deletes rather than shortens. What ADDS information is that the
+    # ladder stopped at four and a fifth court was never built.
+    reason["not_tried"].append(
+        f"more than {_DIAG_BEYOND_MAX} courts beyond the {owns} {reason['club_name']} owns was "
+        f"not tried")
+    _diag_beyond_sweep_note(reason, club_name=reason["club_name"], owns=owns)
+    return None
+
+
+def _diag_beyond_sweep_note(reason, *, club_name, owns):
+    """The day sweep is NOT run above the ceiling, and the director is told so.
+
+    The in-bounds ladder searches one day at a time because the day a failure names is not the
+    day that needs courts. Above the ceiling that sweep would cost four builds per open day per
+    reason for a booking he cannot make anyway, so it is not run — and, exactly as the sweep's
+    own one-court bound is reported rather than left silent, that is said. The note is worth
+    saying only where a day-local answer was NOT found; where one was, no cheaper scope exists."""
+    reason["not_tried"].append(
+        f"one day at a time was not tried above the {owns} courts {club_name} owns")
+
+
 def diagnose_shortfall(result, slate=None, *, cfg=None, constraints_doc=None, levels=("1", "2"),
                        overrides=None, finals_map=None, ceilings=None, budget_builds=200,
                        probe=None, frame="as-booked"):
@@ -2067,6 +2260,12 @@ def diagnose_shortfall(result, slate=None, *, cfg=None, constraints_doc=None, le
                 reason["not_tried"].append(
                     f"{club} already has {here} of the {owns} courts it owns in use, so more "
                     f"courts there were not tried")
+                # ANSWER-1 A3 — AND THE LADDER CARRIES ON PAST THE CEILING, so the one case the
+                # shipped report answered in no figures at all now answers in four. The in-bounds
+                # search still stops exactly where it stopped before: this adds a bounded
+                # hypothetical after it and changes nothing it had already tried.
+                reason["beyond_owned"] = _diag_beyond_owned(
+                    reason, probe, base, club, owns, rung, out, budget_builds)
                 break
             try:
                 r = probe.at([(club, d, rung["band"], rung["courts"])
@@ -2116,6 +2315,75 @@ def diagnose_shortfall(result, slate=None, *, cfg=None, constraints_doc=None, le
     return out
 
 
+def _diag_out_of_room(reason, oor):
+    """ANSWER-1 A3 — the out-of-room answer, in the four figures the September run owes him.
+
+    The requirement (Operator, 2026-08-28): where there is a court deficit the run says HOW MANY
+    courts, on WHAT DAYS, at WHAT TIMES, for WHAT DIVISIONS. Every other branch of this report
+    already carried three of the four; this one carried none, and it is the branch a director
+    whose clubs are all at their Max Courts figure lands in.
+
+    ⚠ THE FIGURES HERE ARE A HYPOTHETICAL AND THE SENTENCE SAYS SO IN THE SAME BREATH. The club
+    does not own those courts. What the number buys him is the SIZE of the gap: one court short
+    is a phone call to a neighbouring club, four is a different week.
+
+    ⚠ AND THERE IS NO "another club" CLAUSE ON A MAIN-SITE-BOUND REASON. Rules 38/39/40 put every
+    final and every Level 1 Mixed match at the main site and R13 made that yield to nothing, so
+    telling a director that the answer might be at another club is FALSE for exactly the match
+    that is blocking him.
+
+    Ordered by LANG-1 rule 4 — what happened, what it costs, the way forward — and the two ways
+    forward are named, never ranked and never chosen for him.
+    """
+    club = oor["club_name"]
+    beyond = reason.get("beyond_owned")
+    main_site_bound = str(reason.get("kind") or "").startswith("main_site")
+    said = [f"You are out of room at {club}: {oor['booked']} of its {oor['owns']} courts are "
+            f"already in use {_diag_band_words(oor['band'])}."]
+
+    # ⚠ THE FIGURE'S DAYS ARE THE FIGURE'S OWN, AND `None` MEANS THE WHOLE WEEK. Falling back to
+    # the reason's evidence days when the ladder answered week-wide would print a booking that
+    # was never built — three named days in place of ten.
+    days = beyond["days"] if beyond else (reason["evidence_days"] or None)
+    when = _diag_when((beyond or {}).get("band") or oor["band"], (beyond or {}).get("hour"))
+    where = (f"on {_and_list([_diag_day_label(d) for d in days])}" if days
+             else "on every day of the week")
+    divisions = _name_some(reason["divisions"])
+    # ⚠ THE DIVISION LIST IS COMMA-SEPARATED, so the clause carrying it is bracketed by dashes.
+    # Run on with a comma and "for Men's 60 & over singles, Women's 65 & over doubles, and the
+    # week did not fit" reads as a third division.
+    for_whom = f", for {divisions}" if divisions else ""
+    if beyond:
+        n = beyond["courts"]
+        said.append(
+            f"It would take {n} more court{'s' if n != 1 else ''} than {club} owns — {when}, "
+            f"{where}{for_whom} — and you cannot book courts a club does not have.")
+    else:
+        said.append(
+            f"Even {_DIAG_BEYOND_MAX} more courts than the {oor['owns']} it owns — {when}, "
+            f"{where}{for_whom} — did not make this week fit.")
+
+    # THE DAY LEVER HE ACTUALLY HAS is the finals map: a division's finals day sets its whole
+    # ladder, so it is the finals day that is named whichever reason was raised — but a reason
+    # holding one division names THAT division, and a reason holding several never pretends the
+    # tool knows which of them to move.
+    # ⚠ AND THE MOVE IS AGAINST THE DAYS THE FAILURE NAMES, NEVER THE DAYS THE COURTS WOULD GO
+    # ON. OI-56 measured those apart and they stay apart here: a court given on Thursday frees
+    # Friday by re-flowing what sat on Friday, but the final he can move is the one that is ON
+    # the day that broke.
+    only = reason["divisions"][0] if len(reason["divisions"]) == 1 else None
+    hit = reason["evidence_days"] or (days or [])
+    off = _and_list([_diag_day_label(d) for d in hit]) if hit else "the day it breaks on"
+    move = (f"move the {only} final off {off}" if only
+            else f"move one of those divisions' finals off {off}")
+    gives = "that day" if len(hit) <= 1 else "on those days"
+    said.append(f"Two ways forward: {move} and check the week again, or change what {club} "
+                f"gives you {gives}.")
+    if not main_site_bound:
+        said.append("Those matches can also play at another club, or in another week.")
+    return said
+
+
 def _diag_sentences(diag):
     """STAGE 2's answers as the director's own sentences — one line per reason diagnosed.
 
@@ -2140,11 +2408,13 @@ def _diag_sentences(diag):
         if oor:
             # R5's answer, and it is a DIFFERENT answer from a bigger number: the director books
             # courts against one of these and renegotiates the week against the other.
-            _say(
-                f"  · You are out of room at {oor['club_name']}: {oor['booked']} of its "
-                f"{oor['owns']} courts are already in use {_diag_band_words(oor['band'])}, so "
-                f"there is no more to add there. Any answer is at another club, or in another "
-                f"week.")
+            #
+            # ⚠ ANSWER-1 A3 REWRITES THIS LINE, and it is the case the whole build exists for. It
+            # used to carry NONE of the four figures the September run owes him — no number, no
+            # day, no time, no division — on the one refusal the shipped report could not answer.
+            # It now says, in order (LANG-1 rule 4): what happened · what it would take and that
+            # he cannot buy it · the two ways forward.
+            _say("  · " + " ".join(_diag_out_of_room(reason, oor)))
             continue
         if ans is None:
             tried = len(reason["tried"])
@@ -2155,14 +2425,17 @@ def _diag_sentences(diag):
                 + " " + " ".join(n[0].upper() + n[1:] + "." for n in reason["not_tried"][:2]))
             continue
         courts = f"{ans['courts']} more court" + ("s" if ans["courts"] != 1 else "")
-        when = _diag_band_words(ans["band"])
-        if ans["hour"]:
-            when = (f"before {ans['hour']}" if ans["band"] == "early"
-                    else f"from {ans['hour']}" if ans["band"] == "main"
-                    else f"after {ans['hour']}")
+        when = _diag_when(ans["band"], ans["hour"])
         where = (f"on {' and '.join(_diag_day_label(d) for d in ans['days'])}"
                  if ans["days"] else "on every day of the week")
+        # ANSWER-1 A1 — THE FOURTH FIGURE. The payload has always carried `divisions` and this
+        # sentence has always thrown them away, so a director reading "1 more court at Mission
+        # Hills before 11:00 on Tuesday" was never told which tournament the court was for.
+        # Rendering only: nothing is computed here that the reason row did not already hold.
+        divisions = _name_some(reason["divisions"])
         line = f"  · {courts} at {ans['club_name']} {when}, {where}"
+        if divisions:
+            line += f", for {divisions}"
         alt = reason["alternative"]
         if alt:
             # OI-B12 — THE TRADE IS NAMED, IT IS NEVER TAKEN. R13 still refuses to publish a
@@ -2205,7 +2478,14 @@ def format_refusal(exc):
                         f"{'es' if r['unscheduled'] != 1 else ''} with nowhere to play."
                         if r["unscheduled"] else r["note"])
             lines.append(f"  [{mark}] {r['label']} — {tail}")
-        if not any(r["clears"] for r in exc.remedies):
+        # ANSWER-1 A4 — "TWO OF THEM TOGETHER" NEEDS TWO OF THEM. The sentence printed whenever
+        # nothing cleared, however short the list of things actually tried; on the committed 2027
+        # seed that is ONE row tried and found not enough beside ONE row that could not be tried
+        # at all, and the director was invited to combine a pair that does not exist. It now needs
+        # two rows that were built and came back short — below that the single row already says
+        # what it says.
+        tried_short = [r for r in exc.remedies if r["clears"] is False]
+        if not any(r["clears"] for r in exc.remedies) and len(tried_short) >= 2:
             lines += ["", "None of these is enough on their own. Two of them together may be — "
                              "or the entry list is larger than this week of courts can hold."]
     # OI-56 §3.4 — ITS OWN SECTION, under the remedies and never inside them. The list above
