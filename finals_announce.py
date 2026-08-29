@@ -25,9 +25,20 @@ evidence arguments are all CALLER-SUPPLIED, which is what keeps trap 2 below shu
 carries `engine_check` and is sitting in the same run surface, and by Step 3.6 it describes a
 board the TD has already changed. The writer never reads it.
 
-⚠ NO PLAYER-FACING OUTPUT (Operator, 8/20). This module writes arithmetic onto a file. There is
-no announcement page, no PDF and no HTML — the director writes his own announcement off the
-file. Nothing here is a deliverable a fabricated entrant could reach (BUDGET-1 R-B2).
+⚠ NO PLAYER-FACING OUTPUT (Operator, 8/20), AND THE SUBSTANCE OF IT IS UNTOUCHED BY FIX-1. What
+that ruling protects is BUDGET-1 R-B2: nothing this module emits may be a deliverable a
+fabricated entrant could reach. It is not, and `render_announced_calendar` is not either — the
+page carries division names, dates and the record's own sentences, and no player name, no draw,
+no court and no time of day appears anywhere on it.
+
+⚠ WHAT FIX-1 (2026-08-29, `FIX1_run_fixes_brief.md` §2.2, Operator-approved) DID CHANGE is the
+flat statement that used to follow it: *"there is no announcement page, no PDF and no HTML — the
+director writes his own announcement off the file."* There is an HTML page now, because the 8/29
+September run had to build one BY HAND in-session (its finding 7) — writing his own announcement
+off a JSON file is precisely what that sentence was asking of him, and it is what the run paid
+for. There is still no PDF. The JSON remains the file of record and the thing that goes on the
+shelf; the page is a rendering OF it, pure and deterministic off the document alone, re-deriving
+nothing.
 
 ⚠ NOTHING READS THIS YET, AND THAT IS THE DESIGN. Every reader is January's (GATE-1, RECON-1,
 BADGE-1), and every one is deliberately outside this build. What this module leaves them is a
@@ -565,6 +576,201 @@ def announce_finals_map(doc, divisions, dates, same_day_finish=None, watchlist=N
         stamp[RECORD_KEY] = record
     out[PUB.KEY] = stamp
     return out
+
+
+# FIX-1 (b) · the page's own words for the four day states. They are the RUNBOOK's words, not the
+# key names: `moved_after_grading` is a field name and "moved after the check" is what a director
+# is told, at Step 3a and again at Step 3.6. One vocabulary, said the same way on every surface.
+_STATE_WORDS = {
+    HELD: "checked and held",
+    FLAGGED: "checked and flagged",
+    MOVED_AFTER_GRADING: "moved after the check",
+    NOT_GRADED: "never checked",
+}
+
+# The honesty line, both halves, exactly as the runbook and `computed_from_of` say them. A page
+# that carried the fingerprint without this sentence would teach a director to read it as proof
+# of who produced the calendar, which it is not and cannot be made into.
+_DIGEST_HALVES = ("This catches a file that drifted — an old copy, a hand edit, the wrong one of "
+                  "two saves. It is never proof of who produced it: anyone who can change the "
+                  "days can work it out again, and it cannot see an edit to the date above.")
+
+_PAGE_CSS = """
+  /* Print-first, and legible in ONE colour: nothing on this page carries meaning by hue — the
+     day states are words, not swatches, so a black-and-white print says exactly what the screen
+     says. BRAND-1's discipline, on a page BRAND-1 does not lock: no font is declared or fetched,
+     no stylesheet is linked, no script runs and nothing on this page reaches the network. It is
+     a sheet of paper that happens to open in a browser. */
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;padding:28px 32px;background:#fff;color:#1a1a1a;
+       font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  h1{margin:0 0 2px;font-size:22px;letter-spacing:-0.01em}
+  .pub{margin:0 0 18px;font-size:14px;color:#444}
+  table{border-collapse:collapse;width:100%;margin:0 0 18px}
+  th,td{text-align:left;vertical-align:top;padding:7px 10px 7px 0;
+        border-bottom:1px solid #d8d8d8}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#555;
+     border-bottom:1.5px solid #1a1a1a}
+  td.day{white-space:nowrap;font-variant-numeric:tabular-nums}
+  td.note{color:#333}
+  td.state{white-space:nowrap;color:#333}
+  .record{margin:0 0 14px;font-size:13.5px;color:#333}
+  .fingerprint{margin:18px 0 0;padding:10px 0 0;border-top:1px solid #d8d8d8;font-size:11.5px;
+               color:#555}
+  .fingerprint code{font:11.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+                    word-break:break-all;color:#1a1a1a}
+  @media print{body{padding:0}tr{break-inside:avoid}}
+"""
+
+
+def _esc(s):
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def _second_date_sentences(rec):
+    """A division's growth and smaller-draw sentences, in the RECORD's own words.
+
+    ⚠ NOTHING IS COMPUTED HERE. Every date is copied off the record and every no-room sentence is
+    the module constant the record already carries; this function only decides which of them the
+    row shows. It mirrors runbook Step 3.6's readback branch for branch, deliberately — the page
+    a director prints and the lines a session reads to him must not be able to say different
+    things about the same division.
+    """
+    bits = []
+    if rec.get("earliest_possible_note"):
+        # No date exists. The sentence IS the answer and it is read first, here as in the runbook.
+        bits.append(rec["earliest_possible_note"])
+    elif rec.get("format") == "round_robin":
+        if rec.get("earliest_possible_start") == rec.get("first_match"):
+            bits.append("the same day even if one more person enters")
+        elif rec.get("earliest_possible_start"):
+            bits.append(f"as early as {rec['earliest_possible_start']} if one more person enters "
+                        f"and it runs as one group")
+    elif rec.get("bigger_draw_costs_a_day_at"):
+        bits.append(f"past {rec['bigger_draw_costs_a_day_at']} entries, "
+                    f"play begins {rec['earliest_possible_start']}")
+    elif rec.get("earliest_possible_start"):
+        bits.append(f"if it outgrows its bracket, play begins {rec['earliest_possible_start']} — "
+                    f"the entry count that does it was not worked out")
+    if rec.get("first_match_if_smaller"):
+        bits.append(f"or {rec['first_match_if_smaller']} if the draw comes in smaller")
+    return bits
+
+
+def _record_sentence(record):
+    """S-9's `computed_from`, as one clause a director can read — no more (the runbook's cap)."""
+    if not record:
+        return ("This calendar carries no record of what it was computed from — the days below "
+                "stand on their own.")
+    parts = []
+    field = record.get("field") or {}
+    if field.get("divisions") is not None:
+        source = field.get("source")
+        kind = ("estimates, not entries" if source == "projected"
+                else "real printed entries" if source == "drawn" else f"source: {source}")
+        parts.append(f"{field['divisions']} divisions priced from {kind}")
+    rules = record.get("rules") or {}
+    if rules.get("source"):
+        whose = ("the director's own rules" if rules["source"] == "caller"
+                 else "the tool's default rulebook")
+        digest = str(rules.get("digest") or "")
+        parts.append(f"worked out under {whose}"
+                     + (f" ({digest[:12]})" if digest else ""))
+    if not parts:
+        return ("This calendar records the day states below and nothing else about what produced "
+                "it.")
+    return "Computed from " + "; ".join(parts) + "."
+
+
+def render_announced_calendar(doc) -> str:
+    """FIX-1 (b) · the announced calendar as a PAGE — the thing a director prints and hands out.
+
+    Until this function the only deliverable Step 3.6 produced was the JSON, and the 8/29
+    September run built a printable calendar by hand in-session because there was nothing to call.
+    The JSON stays the file of record and goes on the shelf; this is the sheet that goes out.
+
+    PURE AND DETERMINISTIC, off the DOCUMENT ALONE — no clock, no file, no global state, and
+    nothing re-derived. Every date, every sentence and every state on the page is copied out of
+    the announced record; the cascade is not re-run here and must never be, because a page whose
+    days disagree with the JSON beside it is two records of one announcement.
+
+    ⚠ AN UNSTAMPED OR UNANNOUNCED DOCUMENT IS REFUSED BY NAME, and that refusal is the point. A
+    printable calendar rendered off a map that was never announced is exactly the look-alike the
+    8/29 run reported: a discarded draft, printed, indistinguishable from the real one.
+
+    Reads the DOCUMENT through the shipped accessors (`finals_publish.announced_of`,
+    `start_days_of`, `computed_from_of`) — never by key, and never off the validator's return
+    value, which drops the whole `announced` block at the gate.
+    """
+    import finals_publish as PUB
+    _finals_map_of(doc)                                  # schema first, loudly
+    ann = PUB.announced_of(doc)
+    if not ann:
+        raise ValueError(
+            f"this {_SCHEMA()} has not been announced, so there is no calendar to print. Stamp it "
+            f"with finals_publish.stamp_finals_map(doc, published_on=...) and announce its days "
+            f"with finals_announce.announce_finals_map(...) first — a printable calendar off an "
+            f"unannounced map is indistinguishable from the real one.")
+    days = start_days_of(doc)
+    if not days:
+        raise ValueError(
+            f"this {_SCHEMA()} is stamped but carries no announced start days, so a printable "
+            f"calendar would show finals days and no day play begins — which is the half January "
+            f"cannot work out again. Announce the days with "
+            f"finals_announce.announce_finals_map(...) first.")
+
+    record = computed_from_of(doc)
+    states = (record or {}).get("finals_days") or {}
+    label = ann.get("label") or ""
+    published_on = ann.get("published_on") or ""
+
+    rows = []
+    for ev in sorted(days):
+        rec = days[ev]
+        bits = _second_date_sentences(rec)
+        state = states.get(ev)
+        rows.append(
+            "    <tr>"
+            f'<td>{_esc(ev)}</td>'
+            f'<td class="day">{_esc(rec.get("final") or "")}</td>'
+            f'<td class="day">{_esc(rec.get("first_match") or "")}</td>'
+            f'<td class="note">{_esc(" · ".join(bits)) if bits else "&mdash;"}</td>'
+            f'<td class="state">{_esc(_STATE_WORDS.get(state, "not recorded"))}</td>'
+            "</tr>")
+
+    digest = ann.get("map_digest")
+    if digest:
+        fingerprint = (f'    <p class="fingerprint">Fingerprint of the days on this page: '
+                       f'<code>{_esc(digest)}</code><br>{_esc(_DIGEST_HALVES)}</p>')
+    else:
+        fingerprint = ('    <p class="fingerprint">This calendar was announced without a '
+                       'fingerprint, so nothing here can tell you whether the days have been '
+                       'edited since.</p>')
+
+    head = _esc(label) or "Announced calendar"
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{head} — announced calendar</title>
+<style>{_PAGE_CSS}</style>
+</head>
+<body>
+    <h1>{head}</h1>
+    <p class="pub">Announced {_esc(published_on)}</p>
+    <p class="record">{_esc(_record_sentence(record))}</p>
+    <table>
+      <thead><tr><th>Division</th><th>Final</th><th>Play begins</th>
+        <th>If the entries come in bigger or smaller</th><th>The day was</th></tr></thead>
+      <tbody>
+{chr(10).join(rows)}
+      </tbody>
+    </table>
+{fingerprint}
+</body>
+</html>
+"""
 
 
 def start_days_of(doc):

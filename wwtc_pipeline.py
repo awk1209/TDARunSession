@@ -328,15 +328,93 @@ def _short_day(day):
         return str(day)
 
 
-def _desk_date(token, by_md, warn, where):
+_WEEKDAY_NAMES = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+
+def _weekday_translation(source_dates, dates):
+    """KEY-1: `{source ISO -> (slate ISO or None, "Friday #2")}` — the desk seed's key.
+
+    A desk stamp names a day in the DRAWS' season; the seed has to name the same day in the
+    SLATE's. Matching the two by calendar date assumes next season occupies last season's dates,
+    which is true in January (the draws and the slate are the same season) and false on every
+    September publish run: measured on the committed field seeded against the 2027 window, all
+    135 elimination desk cells land one weekday late, silently. The desk's shape is a WEEKDAY
+    shape — "quarterfinals on the first Saturday" — so the key is (weekday, occurrence-within-
+    window), counted chronologically: 2026-01-24 is Saturday #1, 2026-01-31 is Saturday #2.
+
+    A source day whose (weekday, occurrence) has no partner in the slate maps to `None`, carrying
+    its label so the caller's warning can name it. That is the VISIBLE fallback — the cell drops
+    to the computed cascade with a warning, never silently and never fatally (ruling 47's shape).
+
+    The identity property is what makes January safe, and it is structural rather than a branch:
+    with `source_dates == dates` every day's own (weekday, occurrence) resolves back to itself,
+    so the translation is the identity map and the seed is byte-for-byte the shipped one."""
+    slots: dict = {}
+    for iso in dates:
+        slots.setdefault(datetime.date.fromisoformat(iso).weekday(), []).append(iso)
+    seen, out = {}, {}
+    for iso in source_dates:
+        wd = datetime.date.fromisoformat(iso).weekday()
+        occ = seen[wd] = seen.get(wd, 0) + 1
+        days = slots.get(wd, ())
+        out[iso] = (days[occ - 1] if occ <= len(days) else None,
+                    f"{_WEEKDAY_NAMES[wd]} #{occ}")
+    return out
+
+
+def _draws_window(levels, warn=None):
+    """KEY-1: the SOURCE window — the days the DRAWS were printed against, read off their own
+    `Dates:` page header with SETUP-2's shipped parser (`_window_from_texts`). Measured on the
+    committed field: one distinct header on 72 of 72 pages, and the window it yields equals the
+    committed slate exactly.
+
+    This is the only place a desk stamp's YEAR can come from — the desk prints "Jan 30" and
+    nothing else — and therefore the only place its WEEKDAY can come from. Without it the seed
+    has no way to tell last season's dates from next season's and simply assumes they are the
+    same, which is the defect KEY-1 removes.
+
+    A header that cannot be read is a VISIBLE fallback, never a raise: `None` comes back (the
+    shipped date-key resolution) and `warn`, when given, carries one line saying the desk days
+    were matched by calendar date instead. Read-only over the same PDFs the lane already parses;
+    deterministic, and measured at seconds."""
+    try:
+        import pypdfium2 as pdfium
+        texts = []
+        for lvl in levels:
+            path = draws_pdf.resolve_draws_pdf(level=lvl)
+            texts += draws_pdf._page_texts(pdfium.PdfDocument(path))
+    except Exception as exc:            # a PDF-layer failure the seed can survive without
+        if warn is not None:
+            warn.append(f"the draws' own date window could not be read "
+                        f"({exc.__class__.__name__}) — desk days were matched to the slate by "
+                        f"calendar date, not by weekday")
+        return None
+    window, _headers = _window_from_texts(texts)
+    if not window:
+        if warn is not None:
+            warn.append("the draws carry no readable 'Dates:' header — desk days were matched "
+                        "to the slate by calendar date, not by weekday")
+        return None
+    return window
+
+
+def _desk_date(token, by_md, warn, where, xlate=None):
     """ASSIGN-1 item 1: a desk stamp's verbatim date token ("Jan 28") -> the slate's
-    "YYYY-MM-DD". The desk prints no year, so the year comes from the SLATE: the token's
-    (month, day) is looked up in the tournament's own date list, which is year-correct even
-    for a window that straddles New Year. Unparseable tokens RAISE (ruling 3's crash-guard
-    discipline — a stamp we cannot read is a parser regression, not a cell to drop); a token
-    that parses but names a day outside the slate window is WARNED and left unseeded, never
-    silently dropped. Measured on the committed field: 0 of 674 stamped elim matches hit
-    either path.
+    "YYYY-MM-DD". The desk prints no year, so the year comes from the date list the token is
+    looked up in, which is year-correct even for a window that straddles New Year. Unparseable
+    tokens RAISE (ruling 3's crash-guard discipline — a stamp we cannot read is a parser
+    regression, not a cell to drop); a token that parses but names a day outside that window is
+    WARNED and left unseeded, never silently dropped. Measured on the committed field: 0 of 674
+    stamped elim matches hit either path.
+
+    KEY-1 splits the two windows the shipped code conflated. `by_md` is the DRAWS' own season —
+    the window the stamps were printed against — and `xlate` (`_weekday_translation`) carries
+    that day on to the SLATE by (weekday, occurrence). `xlate=None` means the stamps are the
+    slate's own season, and is byte-for-byte the shipped date-key resolution: every direct
+    caller and every injected-draws harness keeps today's behaviour. A stamp whose weekday
+    occurrence has no partner in the slate is warned by name and left unseeded, the same shape
+    the outside-window path already has — the cell falls back to the computed cascade rather
+    than moving silently to a day the desk never chose.
 
     The token carries no year, so it is parsed against a LEAP year: `strptime` defaults to 1900,
     which is not a leap year, and would reject a perfectly readable "Feb 29" as unparseable —
@@ -354,11 +432,19 @@ def _desk_date(token, by_md, warn, where):
                          f"(expected '%b %d' / '%B %d', e.g. 'Jan 28')")
     iso = by_md.get((d.month, d.day))
     if iso is None:
-        warn.append(f"{where}: desk day {token!r} is outside the slate window — not seeded")
-    return iso
+        warn.append(f"{where}: desk day {token!r} is outside the draws' own printed window "
+                    f"— not seeded")
+        return None
+    if xlate is None:                  # the stamps are the slate's own season: shipped behaviour
+        return iso
+    day, occurrence = xlate.get(iso, (None, ""))
+    if day is None:
+        warn.append(f"{where}: desk day {token!r} ({occurrence}) has no matching weekday in the "
+                    f"new window — falling back to computed")
+    return day
 
 
-def _desk_seed(levels, dates, draws=None):
+def _desk_seed(levels, dates, draws=None, source_dates=None):
     """ASSIGN-1 (ruling 32): the day map's SEED — the desk's own published elimination layout,
     read off the raw draws' ING-1 stamps as `(event, rnd) -> "YYYY-MM-DD"`, plus advisory
     warnings. Not a new parse: `draws_pdf` already retains the stamps; this is the join the
@@ -374,8 +460,15 @@ def _desk_seed(levels, dates, draws=None):
     stamps are collapsed to one day. Measured lossless: 0 of 135 cells span more than one date.
     A cell that ever did would take the earliest and say so rather than pick silently.
     `draws` (optional): an already-parsed `_level_draws(levels)`, to avoid a second pass over
-    the PDFs when the caller has one. Deterministic; read-only over the draws."""
-    by_md = {(int(dt[5:7]), int(dt[8:10])): dt for dt in dates}
+    the PDFs when the caller has one. Deterministic; read-only over the draws.
+
+    KEY-1: `source_dates` (optional) is the DRAWS' own window — the days the stamps were printed
+    against, which in September is last season's, not the slate's. Given it, stamps resolve by
+    (weekday, occurrence) instead of calendar date (`_weekday_translation`). `None` means the
+    stamps are the slate's own season and is byte-for-byte the shipped resolution."""
+    src = list(source_dates) if source_dates else list(dates)
+    by_md = {(int(dt[5:7]), int(dt[8:10])): dt for dt in src}
+    xlate = _weekday_translation(src, dates) if source_dates else None
     cells, warn = {}, []
     for d in (_level_draws(levels) if draws is None else draws):
         if d.fmt != "single_elim" or d.draw_size < 2:
@@ -395,7 +488,7 @@ def _desk_seed(levels, dates, draws=None):
                 if not stamp:                      # 'Not scheduled', or no stamp line
                     continue
                 iso = _desk_date(stamp["date"], by_md, warn,
-                                 f"{d.event} {label} match {idx}")
+                                 f"{d.event} {label} match {idx}", xlate)
                 if iso is None:
                     continue
                 prev = cells.setdefault((d.event, rnd), iso)
@@ -455,7 +548,7 @@ def _desk_finals(seed, divisions, dates, skip=(), warn=None):
     return out
 
 
-def _rr_desk_seed(levels, dates, draws=None):
+def _rr_desk_seed(levels, dates, draws=None, source_dates=None):
     """ASSIGN-2 (ruling 40): the ROUND-ROBIN half of the desk seed — `(group event, true round)
     -> day`, split into the rounds the desk stamped and the tail rounds derived from them.
     Returns `(stamped, anchored, warnings)`.
@@ -500,8 +593,14 @@ def _rr_desk_seed(levels, dates, draws=None):
 
     Round-robin group SIZES come from the draws here because that is what the stamps were
     printed against; the engine's own post-ingest team counts drive the expansion onto flat
-    match indices (`_rr_group_days`), exactly as `_expand_rr_groups` has always insisted."""
-    by_md = {(int(dt[5:7]), int(dt[8:10])): dt for dt in dates}
+    match indices (`_rr_group_days`), exactly as `_expand_rr_groups` has always insisted.
+
+    KEY-1: `source_dates` is the DRAWS' own window, exactly as in `_desk_seed` — stamps resolve
+    by (weekday, occurrence) rather than calendar date, and `None` is the shipped resolution.
+    The read-each-token-once dedup below is untouched, so warning granularity is unchanged."""
+    src = list(source_dates) if source_dates else list(dates)
+    by_md = {(int(dt[5:7]), int(dt[8:10])): dt for dt in src}
+    xlate = _weekday_translation(src, dates) if source_dates else None
     stamped, anchored, warn = {}, {}, []
     last = len(dates) - 1
     for d in (_level_draws(levels) if draws is None else draws):
@@ -513,7 +612,7 @@ def _rr_desk_seed(levels, dates, draws=None):
             if m < 3:
                 continue
             tokens = [s["date"] for s in g.stamps if s]        # skip 'Not scheduled'
-            iso_of = {tok: _desk_date(tok, by_md, warn, f"{name} schedule stamp")
+            iso_of = {tok: _desk_date(tok, by_md, warn, f"{name} schedule stamp", xlate)
                       for tok in dict.fromkeys(tokens)}        # each token read (and warned) once
             order = sorted({iso for iso in iso_of.values() if iso is not None})
             if not order:
@@ -832,9 +931,17 @@ def _master_assigned_days(levels, dates, finals_map=None, events=None, desk_seed
     # covers, because a round-robin group's DISPLAY round and its rows' flat match index are not
     # the same number. Nothing is recomputed and no day moves.
     shifts: list = []
-    seed, warnings = (_desk_seed(levels, dates, draws) if desk_seed else ({}, []))
-    rr_stamped, rr_anchored, rr_warn = (_rr_desk_seed(levels, dates, draws) if desk_seed
-                                        else ({}, {}, []))
+    # KEY-1: the desk stamps are read against the DRAWS' own printed window, not the slate's.
+    # In January the two are the same window and the seed is unmoved; in September the draws are
+    # last season's and the slate is next January's, and matching them by calendar date rotates
+    # every desk-stamped day one weekday without saying so. Derived once per build, no lane flag
+    # and no mode — January's safety is the translation's identity property, not a branch.
+    window_warn: list = []
+    source_dates = _draws_window(levels, window_warn) if desk_seed else None
+    seed, warnings = (_desk_seed(levels, dates, draws, source_dates) if desk_seed else ({}, []))
+    rr_stamped, rr_anchored, rr_warn = (_rr_desk_seed(levels, dates, draws, source_dates)
+                                        if desk_seed else ({}, {}, []))
+    warnings[:0] = window_warn
     warnings.extend(rr_warn)
     rr_days = {**rr_stamped, **rr_anchored}
     rr_parent, rr_parent_stamped = _rr_parent_days(rr_days, divs, stamped=rr_stamped,
@@ -1105,14 +1212,53 @@ def band_yields_of(result):
             if r.get("gate", _BAND_GATES[0]) in _BAND_GATES]
 
 
+def _name_some(divisions):
+    """`a`, `a, b`, `a, b, c`, `a, b, c and N more` — the refusal's one way of naming divisions.
+
+    Lifted out of `check_week`'s finals sentence, which has always read this way, so ANSWER-1's
+    three new naming sites cannot drift from it. Byte-for-byte what that sentence built inline."""
+    divisions = list(divisions)
+    return ", ".join(divisions[:3]) + (f" and {len(divisions) - 3} more"
+                                       if len(divisions) > 3 else "")
+
+
+def _divisions_of(mids, events):
+    """The divisions behind a list of match ids, read off the result's own event list.
+
+    ANSWER-1 §0.3. `E{n}-R{r}-M{m}` indexes `cfg.events`, and `result["events"]` is that same
+    list of names (`scheduler_multi:1343`), so a refusal can name what is stuck WITHOUT the
+    config — which is what lets every caller of `check_week` say the same sentence. A round-robin
+    id is `{prefix}-M{ri}-{a}v{b}` and its `E{n}` prefix reads the same way.
+
+    An id that cannot be read is skipped rather than guessed at: the count of stuck matches is
+    the figure that must never be wrong, and it is taken from the list itself."""
+    names, events = [], list(events or [])
+    for mid in mids:
+        try:
+            idx = int(str(mid).split("-")[0][1:]) - 1
+        except (ValueError, IndexError):
+            continue
+        if 0 <= idx < len(events) and events[idx] not in names:
+            names.append(events[idx])
+    return sorted(names)
+
+
 def check_week(result):
     """The rung-2 tests, in plain English. An empty list means the week can be published."""
     reasons = []
     unplaced = (result or {}).get("unplaced") or []
     if unplaced:
+        # ANSWER-1 A2 — THE UNPLACED SENTENCE NAMES ITS DIVISIONS, the shape the finals sentence
+        # below has always used. The two halves of a refusal were asymmetric by construction: the
+        # finals half named its divisions and this one named a bare count, so a director told
+        # "24 matches have no place to play" had no way to know WHICH tournament was stuck. The
+        # names are read off the result, never off a config, so `try_change`, the remedy probes
+        # and the refusal itself all say the same sentence.
+        divisions = _divisions_of(unplaced, (result or {}).get("events"))
+        named = f" ({_name_some(divisions)})" if divisions else ""
         reasons.append(
             f"{len(unplaced)} match{'es have' if len(unplaced) != 1 else ' has'} no place to "
-            f"play. Every match has to fit for the week to work.")
+            f"play{named}. Every match has to fit for the week to work.")
     n = len(band_yields_of(result))
     if n > BAND_YIELD_CEILING:
         reasons.append(
@@ -1140,8 +1286,7 @@ def check_week(result):
             if not rows:
                 continue
             divisions = sorted({b["event"] for b in rows})
-            named = ", ".join(divisions[:3]) + (f" and {len(divisions) - 3} more"
-                                                if len(divisions) > 3 else "")
+            named = _name_some(divisions)
             reasons.append(
                 f"{len(rows)} {one if len(rows) == 1 else many} would play away from {main} "
                 f"({named}). Every {one} plays at {main} — that rule does not bend, so this week "
@@ -1406,9 +1551,17 @@ def _finish_sat(row, names):
         row["note"] = ((row["note"] + " ") if row["note"] else "") + (
             "These were found one at a time and then built together, so a smaller combination "
             "may exist and was not searched for.")
-    row["note"] = ((row["note"] + " ") if row["note"] else "") + (
-        f"Bounds: {row['single_day_bound']} single club-day(s) tried, "
-        f"{row['greedy_bound']} accumulated round(s).")
+    # ANSWER-1 A5 — THE BOUNDS ARE SAID ONLY WHERE THERE WAS A SEARCH TO BOUND. Measured on the
+    # committed 2027 seed, where every club is open on every one of the ten days: the row said
+    # "there is no closed day to open" and then "Bounds: 0 single club-day(s) tried, 0
+    # accumulated round(s)" — a limit quoted on a search that had nothing to look at. Zero bounds
+    # AND zero builds is the one shape that means the search space was empty; a stage-1 sweep that
+    # found nothing worth opening has builds behind it and still reports its zeros, because there
+    # the zeros say stage 2 never ran and that IS information.
+    if row["single_day_bound"] or row["greedy_bound"] or row["builds"]:
+        row["note"] = ((row["note"] + " ") if row["note"] else "") + (
+            f"Bounds: {row['single_day_bound']} single club-day(s) tried, "
+            f"{row['greedy_bound']} accumulated round(s).")
     if row["not_tried"]:
         row["note"] += " " + " ".join(n[0].upper() + n[1:] + "." for n in row["not_tried"])
     return row
@@ -1716,6 +1869,21 @@ def _diag_band_words(band):
             "lit": "after the lights come on"}[band]
 
 
+def _diag_when(band, hour):
+    """The band as the director hears it — HIS boundary hour where the day cells agree on one,
+    the band's own words where they do not.
+
+    ANSWER-1 decision 2 as ruled: "at what time(s)" ships as the day's bands with his own
+    boundary hours, which is the finest unit the capacity vocabulary can express AND re-run.
+    Lifted out of the answer sentence, which has always read this way, so the out-of-room
+    sentence cannot drift from it."""
+    if not hour:
+        return _diag_band_words(band)
+    return (f"before {hour}" if band == "early"
+            else f"from {hour}" if band == "main"
+            else f"after {hour}")
+
+
 def _diag_band_hour(slate, club, band, days=None):
     """The band boundary in the DIRECTOR'S OWN NUMBERS, read off his slate — never the tool's.
 
@@ -1795,7 +1963,8 @@ def _diag_stage1(result, slate, cfg):
             # The refusal NAMES both sides of the trade and never takes it — R13 is untouched.
             "alternative": {"count": len(rows), "noun": one if len(rows) == 1 else many,
                             "venues": pushed_to},
-            "answer": None, "tried": [], "not_tried": [], "out_of_room": None})
+            "answer": None, "tried": [], "not_tried": [], "out_of_room": None,
+            "beyond_owned": None})
 
     unplaced = (result or {}).get("unplaced") or []
     if unplaced:
@@ -1832,6 +2001,7 @@ def _diag_stage1(result, slate, cfg):
             "divisions": sorted(divisions),
             "alternative": None,
             "answer": None, "tried": [], "not_tried": [], "out_of_room": None,
+            "beyond_owned": None,
             "_unreadable": unreadable})
 
     yields = len(band_yields_of(result))
@@ -1847,7 +2017,7 @@ def _diag_stage1(result, slate, cfg):
             "not_tried": ["more courts were not tried against the early-start promise: those "
                           "matches already have a court, so this is a clock question and not a "
                           "court one"],
-            "out_of_room": None})
+            "out_of_room": None, "beyond_owned": None})
     return reasons
 
 
@@ -1982,6 +2152,136 @@ def _diag_rungs(reason, slate, sweep_days):
     return rungs
 
 
+# ANSWER-1 decision 1 (Operator, 2026-08-28, option 1) — HOW FAR PAST ITS OWN COURTS THE LADDER
+# GOES once every in-bounds configuration is exhausted. Four, and the bound is REPORTED exactly
+# as the day sweep's one-court bound is: a director told "not within four courts of what this
+# club owns" knows the answer is a different club or a different week, and one told nothing at
+# all knows only that the tool stopped.
+_DIAG_BEYOND_MAX = 4
+
+
+def _diag_beyond_edits(base, club, band, days, target):
+    """The per-day edits that put exactly `target` courts in `band` on each of `days`.
+
+    ⚠ PER DAY, NEVER ONE UNIFORM DELTA. `_court_slate` adds a delta to what a cell already
+    carries, and the days in scope do not carry the same counts — one delta across them would
+    leave the quieter days BELOW the figure being reported, which is the interpolation OI-56
+    forbids. Every day is raised to the figure itself, so the configuration built is the
+    configuration named.
+
+    ⚠ A CLUB THAT OWNS `target` COURTS HAS THEM ALL DAY. So an early-band figure raises the main
+    band with it wherever the main band sits below it: a morning count above the day's own court
+    count is not a booking anyone could make, and building one would price a week that cannot
+    exist."""
+    edits = []
+    for loc in base["locations"]:
+        if loc["id"] != club:
+            continue
+        for day, cell in (loc.get("available") or {}).items():
+            if day not in days:
+                continue
+            if band == "early":
+                # A day with no morning step-up has no early band to widen — the same skip
+                # `_court_slate` makes, made here so the edit list says what will happen.
+                if "morning_courts" in cell:
+                    edits.append((club, day, "early",
+                                  target - (cell.get("morning_courts") or 0)))
+                if (cell.get("courts") or 0) < target:
+                    edits.append((club, day, "main", target - (cell.get("courts") or 0)))
+            else:
+                edits.append((club, day, "main", target - (cell.get("courts") or 0)))
+    return edits
+
+
+def _diag_beyond_owned(reason, probe, base, club, owns, rung, out, budget_builds):
+    """ANSWER-1 A3 — the ladder that continues PAST what the club owns, and the ONE new
+    computation in this build.
+
+    Today's search stops at the ceiling, and the director is told he is out of room with no
+    figure at all: not how many courts, not on which day, not at what time, not for which
+    division. He cannot buy a court his club does not have — but the SIZE of the gap is what
+    decides whether the answer is a neighbouring club or a different week, and that is a figure
+    only a build can give him.
+
+    ⚠ IT IS A HYPOTHETICAL AND THE SENTENCE SAYS SO. Nothing here is a booking to make; the
+    report says "you cannot book that" in the same breath as the number.
+
+    ⚠ OI-56'S PROPERTIES CARRY OVER VERBATIM, because the supply is the same non-monotone supply:
+    every figure is BUILT at exactly that figure — no interpolation, no "at least N" — and graded
+    on the WHOLE refusal (`holds`, which is `check_week` empty AND no hard breach), never on the
+    one reason the ladder was entered for.
+
+    Returns the answer, or None with the bound recorded on the reason's `not_tried`.
+    """
+    band = rung["band"]
+    open_days = sorted({day for loc in base["locations"] if loc["id"] == club
+                        for day in (loc.get("available") or {})})
+    if not open_days:
+        return None
+    named = [d for d in (rung["days"] or []) if d in open_days]
+
+    # ⚠ THE IN-BOUNDS LADDER'S OWN SCOPE ORDER, CONTINUED — and it is NOT optional. Measured on
+    # the flat-at-ceiling bench at 0.52: the days this reason names carry no answer at any of the
+    # four figures, and ONE court beyond what the club owns, on every day of the week, clears
+    # the whole refusal. A ladder that stopped at the broken rung's own days would have reported
+    # "no number of courts" over an answer that exists — which is the defect this build is
+    # closing, rebuilt one level down. Named days first at every figure, then the week, exactly
+    # as `_diag_rungs` exhausts its named rungs before it proposes a week-wide booking.
+    #
+    # ⚠ `days: None` MEANS THE WHOLE WEEK, the same way the in-bounds `answer` says it. No new
+    # vocabulary, and the renderer's existing "on every day of the week" reads it already.
+    # ⚠ `builds` IS REAL BUILDS, NEVER RUNGS CLIMBED. `court_probe` caches, and the reasons of one
+    # refusal share a club — so the three reasons of the flat-at-ceiling bench each climb five
+    # rungs and the week-wide rung is built ONCE for all three. Reporting five apiece would
+    # inflate this build's own cost by more than half, on the one figure that exists to state it.
+    spent = probe.used
+    for scope_days in ([named] if named else []) + [None]:
+        for k in range(1, _DIAG_BEYOND_MAX + 1):
+            edits = _diag_beyond_edits(base, club, band, scope_days or open_days, owns + k)
+            if not edits:
+                continue
+            try:
+                r = probe.at(edits)
+            except _CBExhausted:
+                out["partial"] = True
+                reason["not_tried"].append(
+                    f"the search stopped at its build budget of {budget_builds} before it could "
+                    f"say how many courts beyond the {owns} {reason['club_name']} owns this "
+                    f"week needs")
+                return None
+            if r.get("holds"):
+                if scope_days is None:
+                    _diag_beyond_sweep_note(reason, club_name=reason["club_name"], owns=owns)
+                return {"courts": k, "days": list(scope_days) if scope_days else None,
+                        "band": band, "hour": _diag_band_hour(base, club, band, scope_days),
+                        "divisions": list(reason["divisions"]),
+                        "builds": probe.used - spent}
+    # NOTHING WITHIN FOUR. `null`, and the BOUND is reported — the day sweep's one-court bound
+    # verbatim ("a silent cap reads as 'we checked everything' when we did not").
+    #
+    # ⚠ WHAT GOES IN `not_tried` IS THE CAP, NEVER "nothing was found". OI-56's own rule, kept:
+    # the sentence already says the week did not fit at any of them, and saying it twice is the
+    # padding LANG-1 rule 6 deletes rather than shortens. What ADDS information is that the
+    # ladder stopped at four and a fifth court was never built.
+    reason["not_tried"].append(
+        f"more than {_DIAG_BEYOND_MAX} courts beyond the {owns} {reason['club_name']} owns was "
+        f"not tried")
+    _diag_beyond_sweep_note(reason, club_name=reason["club_name"], owns=owns)
+    return None
+
+
+def _diag_beyond_sweep_note(reason, *, club_name, owns):
+    """The day sweep is NOT run above the ceiling, and the director is told so.
+
+    The in-bounds ladder searches one day at a time because the day a failure names is not the
+    day that needs courts. Above the ceiling that sweep would cost four builds per open day per
+    reason for a booking he cannot make anyway, so it is not run — and, exactly as the sweep's
+    own one-court bound is reported rather than left silent, that is said. The note is worth
+    saying only where a day-local answer was NOT found; where one was, no cheaper scope exists."""
+    reason["not_tried"].append(
+        f"one day at a time was not tried above the {owns} courts {club_name} owns")
+
+
 def diagnose_shortfall(result, slate=None, *, cfg=None, constraints_doc=None, levels=("1", "2"),
                        overrides=None, finals_map=None, ceilings=None, budget_builds=200,
                        probe=None, frame="as-booked"):
@@ -2067,6 +2367,12 @@ def diagnose_shortfall(result, slate=None, *, cfg=None, constraints_doc=None, le
                 reason["not_tried"].append(
                     f"{club} already has {here} of the {owns} courts it owns in use, so more "
                     f"courts there were not tried")
+                # ANSWER-1 A3 — AND THE LADDER CARRIES ON PAST THE CEILING, so the one case the
+                # shipped report answered in no figures at all now answers in four. The in-bounds
+                # search still stops exactly where it stopped before: this adds a bounded
+                # hypothetical after it and changes nothing it had already tried.
+                reason["beyond_owned"] = _diag_beyond_owned(
+                    reason, probe, base, club, owns, rung, out, budget_builds)
                 break
             try:
                 r = probe.at([(club, d, rung["band"], rung["courts"])
@@ -2116,6 +2422,75 @@ def diagnose_shortfall(result, slate=None, *, cfg=None, constraints_doc=None, le
     return out
 
 
+def _diag_out_of_room(reason, oor):
+    """ANSWER-1 A3 — the out-of-room answer, in the four figures the September run owes him.
+
+    The requirement (Operator, 2026-08-28): where there is a court deficit the run says HOW MANY
+    courts, on WHAT DAYS, at WHAT TIMES, for WHAT DIVISIONS. Every other branch of this report
+    already carried three of the four; this one carried none, and it is the branch a director
+    whose clubs are all at their Max Courts figure lands in.
+
+    ⚠ THE FIGURES HERE ARE A HYPOTHETICAL AND THE SENTENCE SAYS SO IN THE SAME BREATH. The club
+    does not own those courts. What the number buys him is the SIZE of the gap: one court short
+    is a phone call to a neighbouring club, four is a different week.
+
+    ⚠ AND THERE IS NO "another club" CLAUSE ON A MAIN-SITE-BOUND REASON. Rules 38/39/40 put every
+    final and every Level 1 Mixed match at the main site and R13 made that yield to nothing, so
+    telling a director that the answer might be at another club is FALSE for exactly the match
+    that is blocking him.
+
+    Ordered by LANG-1 rule 4 — what happened, what it costs, the way forward — and the two ways
+    forward are named, never ranked and never chosen for him.
+    """
+    club = oor["club_name"]
+    beyond = reason.get("beyond_owned")
+    main_site_bound = str(reason.get("kind") or "").startswith("main_site")
+    said = [f"You are out of room at {club}: {oor['booked']} of its {oor['owns']} courts are "
+            f"already in use {_diag_band_words(oor['band'])}."]
+
+    # ⚠ THE FIGURE'S DAYS ARE THE FIGURE'S OWN, AND `None` MEANS THE WHOLE WEEK. Falling back to
+    # the reason's evidence days when the ladder answered week-wide would print a booking that
+    # was never built — three named days in place of ten.
+    days = beyond["days"] if beyond else (reason["evidence_days"] or None)
+    when = _diag_when((beyond or {}).get("band") or oor["band"], (beyond or {}).get("hour"))
+    where = (f"on {_and_list([_diag_day_label(d) for d in days])}" if days
+             else "on every day of the week")
+    divisions = _name_some(reason["divisions"])
+    # ⚠ THE DIVISION LIST IS COMMA-SEPARATED, so the clause carrying it is bracketed by dashes.
+    # Run on with a comma and "for Men's 60 & over singles, Women's 65 & over doubles, and the
+    # week did not fit" reads as a third division.
+    for_whom = f", for {divisions}" if divisions else ""
+    if beyond:
+        n = beyond["courts"]
+        said.append(
+            f"It would take {n} more court{'s' if n != 1 else ''} than {club} owns — {when}, "
+            f"{where}{for_whom} — and you cannot book courts a club does not have.")
+    else:
+        said.append(
+            f"Even {_DIAG_BEYOND_MAX} more courts than the {oor['owns']} it owns — {when}, "
+            f"{where}{for_whom} — did not make this week fit.")
+
+    # THE DAY LEVER HE ACTUALLY HAS is the finals map: a division's finals day sets its whole
+    # ladder, so it is the finals day that is named whichever reason was raised — but a reason
+    # holding one division names THAT division, and a reason holding several never pretends the
+    # tool knows which of them to move.
+    # ⚠ AND THE MOVE IS AGAINST THE DAYS THE FAILURE NAMES, NEVER THE DAYS THE COURTS WOULD GO
+    # ON. OI-56 measured those apart and they stay apart here: a court given on Thursday frees
+    # Friday by re-flowing what sat on Friday, but the final he can move is the one that is ON
+    # the day that broke.
+    only = reason["divisions"][0] if len(reason["divisions"]) == 1 else None
+    hit = reason["evidence_days"] or (days or [])
+    off = _and_list([_diag_day_label(d) for d in hit]) if hit else "the day it breaks on"
+    move = (f"move the {only} final off {off}" if only
+            else f"move one of those divisions' finals off {off}")
+    gives = "that day" if len(hit) <= 1 else "on those days"
+    said.append(f"Two ways forward: {move} and check the week again, or change what {club} "
+                f"gives you {gives}.")
+    if not main_site_bound:
+        said.append("Those matches can also play at another club, or in another week.")
+    return said
+
+
 def _diag_sentences(diag):
     """STAGE 2's answers as the director's own sentences — one line per reason diagnosed.
 
@@ -2140,11 +2515,13 @@ def _diag_sentences(diag):
         if oor:
             # R5's answer, and it is a DIFFERENT answer from a bigger number: the director books
             # courts against one of these and renegotiates the week against the other.
-            _say(
-                f"  · You are out of room at {oor['club_name']}: {oor['booked']} of its "
-                f"{oor['owns']} courts are already in use {_diag_band_words(oor['band'])}, so "
-                f"there is no more to add there. Any answer is at another club, or in another "
-                f"week.")
+            #
+            # ⚠ ANSWER-1 A3 REWRITES THIS LINE, and it is the case the whole build exists for. It
+            # used to carry NONE of the four figures the September run owes him — no number, no
+            # day, no time, no division — on the one refusal the shipped report could not answer.
+            # It now says, in order (LANG-1 rule 4): what happened · what it would take and that
+            # he cannot buy it · the two ways forward.
+            _say("  · " + " ".join(_diag_out_of_room(reason, oor)))
             continue
         if ans is None:
             tried = len(reason["tried"])
@@ -2155,14 +2532,17 @@ def _diag_sentences(diag):
                 + " " + " ".join(n[0].upper() + n[1:] + "." for n in reason["not_tried"][:2]))
             continue
         courts = f"{ans['courts']} more court" + ("s" if ans["courts"] != 1 else "")
-        when = _diag_band_words(ans["band"])
-        if ans["hour"]:
-            when = (f"before {ans['hour']}" if ans["band"] == "early"
-                    else f"from {ans['hour']}" if ans["band"] == "main"
-                    else f"after {ans['hour']}")
+        when = _diag_when(ans["band"], ans["hour"])
         where = (f"on {' and '.join(_diag_day_label(d) for d in ans['days'])}"
                  if ans["days"] else "on every day of the week")
+        # ANSWER-1 A1 — THE FOURTH FIGURE. The payload has always carried `divisions` and this
+        # sentence has always thrown them away, so a director reading "1 more court at Mission
+        # Hills before 11:00 on Tuesday" was never told which tournament the court was for.
+        # Rendering only: nothing is computed here that the reason row did not already hold.
+        divisions = _name_some(reason["divisions"])
         line = f"  · {courts} at {ans['club_name']} {when}, {where}"
+        if divisions:
+            line += f", for {divisions}"
         alt = reason["alternative"]
         if alt:
             # OI-B12 — THE TRADE IS NAMED, IT IS NEVER TAKEN. R13 still refuses to publish a
@@ -2205,7 +2585,14 @@ def format_refusal(exc):
                         f"{'es' if r['unscheduled'] != 1 else ''} with nowhere to play."
                         if r["unscheduled"] else r["note"])
             lines.append(f"  [{mark}] {r['label']} — {tail}")
-        if not any(r["clears"] for r in exc.remedies):
+        # ANSWER-1 A4 — "TWO OF THEM TOGETHER" NEEDS TWO OF THEM. The sentence printed whenever
+        # nothing cleared, however short the list of things actually tried; on the committed 2027
+        # seed that is ONE row tried and found not enough beside ONE row that could not be tried
+        # at all, and the director was invited to combine a pair that does not exist. It now needs
+        # two rows that were built and came back short — below that the single row already says
+        # what it says.
+        tried_short = [r for r in exc.remedies if r["clears"] is False]
+        if not any(r["clears"] for r in exc.remedies) and len(tried_short) >= 2:
             lines += ["", "None of these is enough on their own. Two of them together may be — "
                              "or the entry list is larger than this week of courts can hold."]
     # OI-56 §3.4 — ITS OWN SECTION, under the remedies and never inside them. The list above
@@ -4430,8 +4817,405 @@ def _engine_check(setup, levels, plan, grid_events=None, progress=True):
             "day_grid": {ev: day_grid[ev] for ev in sorted(day_grid)}}
 
 
+# =============================================================================================
+# BEST-1 (2026-08-29) — STEP 2's FIRST MAP IS THE OPTIMIZED CALENDAR. LANE: September (M8).
+#
+# Today Step 2 hands the director ONE candidate, produced by a four-level precedence — pinned,
+# then the desk's own stamp, then an anchor off his desk semifinal, then a computed cascade. It
+# is a defensible map, and since KEY-1 it is the desk's real weekday shape. IT IS NOT A CHOSEN
+# MAP, BECAUSE NOTHING CHOOSES: offering a best needs a score, more than one candidate, and a
+# comparison, and OI-62 measured that none of the three existed. This block supplies all three,
+# OPT-IN, and leaves the shipped draft exactly where it is.
+#
+# THE SCORE IS D-54's, IN D-54's ORDER, OVER LEGAL ARRANGEMENTS ONLY — quietest busiest day,
+# then fewest courts to book, then fewest matches out of the daily order. An arrangement that
+# leaves a match unplaced, bends something hard, or fails `check_week` is not ranked, not shown
+# and cannot win: it is not a calendar at all. Everything else a build reports — venue bends,
+# matches moved to another day, late Level-1 Mixed — is REPORTED AND NEVER SCORED. And MATCHING
+# LAST SEASON'S DATES IS WORTH NOTHING (D-54): no term below expresses it, directly or by proxy.
+# KEY-1's desk-derived draft is where the search STARTS, never what it aims at.
+#
+# ⚠ LEG 2 IS PRICED ON THE FINALISTS, NOT ON EVERY CANDIDATE (brief §2.3 option A, Operator-
+# approved 8/29), and every clause of that is measured rather than reasoned. `court_budget` costs
+# ~70 s and ~105 builds per evaluation, so pricing courts per candidate is 343 x 70 s ~ 6.6 HOURS
+# against a ruled 10-12 minute allowance. The free proxy was DRIVEN AND FAILS: `_cb_axis_counts`'
+# peak court occupancy saturates at what the director already booked (54 against a real floor of
+# 48) and so cannot tell two finals maps apart. The hill-climb therefore steers on legs 1 and 3,
+# the best arrangements it SAW get a real court bill, and leg 2 decides among them in D-54's
+# order. The measured pilot is the argument for that shape as much as the warning: the map that
+# won on legs 1 and 3 was NOT the cheapest to book (48 -> 49), so a design that never re-read
+# courts would have shipped the +1 blind.
+#
+# ⚠ AND THE TOOL DOES NOT TAKE THAT TRADE FOR HIM (Operator ruling 8/29, brief §5a). It neither
+# decides nor refuses: it puts BOTH calendars in front of him with all three numbers each and he
+# picks. That is why this returns two of them, and why the DRAFT IS NEVER A FINALIST — ranking it
+# against the searched arrangements would quietly re-impose "refuse any calendar dearer to book
+# than the free draft", which is one of the two options the ruling explicitly DECLINED.
+#
+# ⚠ THE CHOICE IS ELICITED IN THE RUN CONVERSATION, NOT ON A CONSOLE SCREEN. Both calendars are
+# recorded here as plain maps precisely so the chosen one re-enters through the EXISTING re-edit
+# loop (`finals_plan(setup, finals=<td-finals-map/v1>)`, the same pins path a zero-drag courier
+# round trip already uses). No console code is written and `finals_plan.py` is not opened, so the
+# D-3 freeze stays sealed at five waivers granted and five spent.
+#
+# THE RESULT IS DEFENSIBLE, NOT OPTIMAL, and says so in `court_budget`'s own words (:3612): a
+# greedy hill-climb can sit above the true optimum, and a calendar he can re-derive beats one
+# that is one better and unexplainable.
+# =============================================================================================
+
+# The RULED allowance, taken mid-band of the Operator's 10-12 minutes. It bounds the WHOLE
+# optimization — the draft's own court bill, the hill-climb, and the finalists' court bills —
+# because those are one wait as far as the director is concerned, and §2.3's finalists are what
+# "the remaining allowance buys".
+_BEST_ALLOWANCE = 660
+# §2.3 option A's N: how many of the arrangements the search saw get a REAL court bill.
+_BEST_FINALISTS = 5
+
+
+def _best_need(setup, levels, divs=None):
+    """{event: days its rounds need} — the structural-feasibility rule, REUSED not re-derived.
+
+    Identical to `_engine_check`'s own (`:4755-4759`), same-day-finish collapse honoured exactly
+    as `_finals_pins` honours it. `divs` is passed in by `finals_plan`, which has already made
+    the one pass over the draw PDFs; absent, it is resolved here for a standalone caller.
+    """
+    divs = _divisions(levels) if divs is None else divs
+    con = setup.get("constraints") or default_constraints()
+    joined = set(_resolve_same_day_finish(
+        (con.get("same_day_finish") or {}).get("divisions"), divs, []))
+    return {d.event: d.rounds - (1 if d.event in joined else 0) for d in divs}
+
+
+def _best_candidates(need, mapped, dates):
+    """Every structurally-legal single-division finals move off `mapped`, in a FIXED order.
+
+    ⚠ SORTED BY (division, date), and that is not tidiness: determinism is a hard invariant, so
+    the order candidates are read in must never be what decides a tie. Structurally infeasible
+    cells cost no build, exactly as they cost none in the day grid.
+
+    Measured on the committed 2027 seed over the full 56-division stand-in field: 343 moves
+    against a naive ceiling of 504 — per division min 3, max 9, median 6, and 0 divisions with
+    no move at all.
+    """
+    return [(ev, dt) for ev in sorted(mapped) for i, dt in enumerate(dates)
+            if i >= need.get(ev, 1) - 1 and dt != mapped[ev]]
+
+
+def _best_legal(reading):
+    """LEGAL, and nothing below ranks anything that is not: every match placed, nothing hard
+    bent, and the week itself holds. An illegal arrangement is not a worse calendar — it is not
+    a calendar. Roughly one candidate in ten refuses the week on this field (35 of 343 on the
+    pilot's first round), so this filter is load-bearing rather than defensive habit."""
+    return (not reading["unplaced"] and not reading["hard_breaches"]
+            and not reading["refusal"])
+
+
+def _best_pair(reading):
+    """Legs 1 and 3 — what the hill-climb steers on. Leg 2 is priced on the finalists (§2.3)."""
+    return (reading["busiest_day"]["matches"], reading["out_of_order"])
+
+
+def _best_calendar(which, fmap, reading, courts):
+    """One of the two calendars Step 2 hands over, with ALL THREE of D-54's numbers on it.
+
+    `courts` is `court_budget`'s floor total — the real one, built, never estimated. Both
+    calendars carry the same shape so a reader comparing them is comparing like with like, which
+    is the whole point of showing two.
+    """
+    return {"which": which, "finals_day": {ev: fmap[ev] for ev in sorted(fmap)},
+            "busiest_day": dict(reading["busiest_day"]), "courts_to_book": courts,
+            "out_of_order": reading["out_of_order"],
+            # REPORTED, NEVER SCORED (§2.1) — the gravy, so he can see what else moved.
+            "venue_bends": reading["venue_bends"], "moved_day": reading["moved_day"],
+            "late_l1_mixed": reading["late_l1_mixed"]}
+
+
+def _best_trio(cal):
+    """D-54's three numbers off a calendar, in D-54's order. THE comparable, lexicographic."""
+    return (cal["busiest_day"]["matches"], cal["courts_to_book"], cal["out_of_order"])
+
+
+def _best_sentences(draft, best, search):
+    """What Step 2 says out loud, in the director's language. A RECORD, NEVER ADVICE — the tool
+    prices and proposes and never tells him his own calendar is wrong (§2.5)."""
+    lines = [f"The tool tried {search['search_builds']} versions of the week in "
+             f"{max(1, round(search['seconds'] / 60))} minute(s) and kept the best it found."]
+    if best is None:
+        lines.append("It found nothing better than the calendar it already had, so there is one "
+                     "calendar here, not two.")
+        return lines
+    lines.append("Two calendars, and the choice is yours — the one the tool derives on its own, "
+                 "and the one the search found:")
+    for cal in (draft, best):
+        lines.append(
+            f"  · {'the calendar as derived' if cal is draft else 'the searched calendar'}: "
+            f"busiest day {cal['busiest_day']['matches']} matches "
+            f"({_console_day(cal['busiest_day']['day'])}) · "
+            f"{cal['courts_to_book']} courts to book · "
+            f"{cal['out_of_order']} matches outside the daily order")
+    # ⚠ SAID ONLY AS STRONGLY AS IT IS TRUE. The first smoke run printed "better on all three
+    # counts" for a calendar that was better on ONE and level on the other two — an overclaim
+    # about the exact numbers he is being asked to choose between. Winning every leg means
+    # STRICTLY better on every leg; anything weaker gets the weaker sentence, with its count.
+    d, b = _best_trio(draft), _best_trio(best)
+    for name, x, y in (("The searched calendar", b, d), ("The calendar as derived", d, b)):
+        if all(i < j for i, j in zip(x, y)):
+            lines.append(f"{name} is better on all three counts.")
+            break
+        if all(i <= j for i, j in zip(x, y)) and x != y:
+            n = sum(1 for i, j in zip(x, y) if i < j)
+            lines.append(f"{name} is no worse on any of the three counts, and better on "
+                         f"{n} of them.")
+            break
+    if search["still_improving"]:
+        # RULED 8/29: it stops, it SAYS it was still improving, and whether to keep going is his.
+        lines.append("The search was still finding better weeks when its time ran out. It can "
+                     "keep going if you want it to — that is your call, not the tool's.")
+    # `court_budget`'s own register (:3612), inherited rather than restated stronger.
+    lines.append("This is a defensible calendar, not the theoretical best — a search like this "
+                 "can stop a little short of the very best arrangement. That is the safe "
+                 "direction against a calendar you are about to announce.")
+    return lines
+
+
+def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
+                 finalists=_BEST_FINALISTS, max_builds=None, progress=True, divs=None):
+    """The `td-finals-plan/v1` `optimized_map` block (contracts §13) — additive and optional.
+
+    Greedy hill-climb over single-division finals moves, EVERY CANDIDATE A REAL BUILD. No
+    surrogate score and no estimated capacity: `try_change` at ~0.7 s is the verdict, exactly the
+    way the court budget's own descent works. A round evaluates every remaining candidate and
+    takes the single best improving move; it stops on the first of a local optimum, the
+    allowance, or `max_builds`.
+
+    Returns BOTH calendars — the free draft and the search's winner — each with all three of
+    D-54's numbers, plus every finalist's trio, the moves taken, what was spent, and whether the
+    allowance stopped it while it was still improving (§5a, §2.5).
+
+      allowance  : seconds for the WHOLE optimization, draft pricing and finalist pricing
+                   included. Default 660 — the Operator's ruled 10-12 minutes, mid-band.
+      finalists  : how many of the arrangements seen get a real `court_budget`. Bends DOWN, never
+                   below 1, when a shortened allowance cannot buy that many bills.
+      max_builds : THE HARNESS'S DETERMINISTIC LEVER, and the reason it exists is worth stating.
+                   A wall-clock bound makes the number of builds a property of the machine, so a
+                   test that must prove "same input, same map, twice" bounds the search by BUILDS
+                   instead, which is deterministic. Same precedent as `court_budget`'s
+                   `budget_builds` and `_engine_check`'s `grid_events`. None = the clock alone.
+      progress   : D4's ruling — the wait is named UPFRONT and the search says what it is doing
+                   while it runs, never a silent eleven-minute stall at Step 2. False silences it.
+
+    ⚠ TIES BREAK ON A FIXED KEY — the score, then the division name, then the date — never on
+    iteration order. Determinism is a hard invariant and this is where it would be lost.
+    """
+    t0 = datetime.datetime.now()
+    slate_doc, con = setup.get("slate"), setup.get("constraints")
+    ov = setup.get("overrides") or None
+    dates = list(plan["dates"])
+    draft_map = dict(plan["finals_day"])
+    # ⚠ TWO COUNTERS, AND THE SPLIT IS LOAD-BEARING. `total` is every build this call spends, so
+    # the cost of the answer rides on the answer (OI-56's discipline). `search` is the hill-climb's
+    # own, and it is what `max_builds` bounds — measured the other way round on the first smoke
+    # run: the draft's court bill alone is ~106 builds, so a `max_builds` counting both spent the
+    # whole bound before a single candidate calendar was built and the search silently did nothing.
+    spent = {"total": 0, "search": 0}
+
+    def _say(msg):
+        if progress:
+            print(msg, flush=True)
+
+    def _elapsed():
+        return (datetime.datetime.now() - t0).total_seconds()
+
+    def _read(fmap):
+        """One real build over `fmap`. The S-7 pair travels WHOLE — his slate with his rules —
+        or `_paired_rules` refuses it; a court figure computed under the engine's rulebook and
+        labelled as the director's is the fault that guard exists to close."""
+        spent["total"] += 1
+        return try_change(base_slate=slate_doc, constraints_doc=con, levels=levels,
+                          overrides=ov, finals_map=dict(fmap))
+
+    def _courts(fmap):
+        """Leg 2, BUILT — `court_budget`'s floor total over this calendar. ~70 s, ~105 builds."""
+        cb = court_budget(levels=levels, constraints_doc=con, slate=slate_doc,
+                          finals_map=dict(fmap), overrides=ov)
+        spent["total"] += cb["builds"]["used"]
+        return cb["floor"].get("total"), cb
+
+    # D4's ruling, and §2.4 item 1: THE WAIT IS NAMED BEFORE IT IS SPENT, never after.
+    _say(f"Looking for a quieter week — up to about {max(1, round(allowance / 60))} minute(s). "
+         f"You will be shown both calendars at the end and the choice will be yours.")
+
+    # ---- the free draft, priced in full ---------------------------------------------------
+    # It is one of the two calendars he is shown, so its court bill is not optional. Timing it
+    # is also how the finalists' reserve below gets a MEASURED size instead of a constant.
+    draft_read = _read(draft_map)
+    if not _best_legal(draft_read):
+        # ⚠ A WEEK THAT DOES NOT HOLD IS NOT SEARCHED, and the guard is here rather than at the
+        # call site so it stands however this is reached. NOMAP-1's rule holds identically: a week
+        # no legal schedule can hold has no calendar worth optimizing, every candidate would fail
+        # `_best_legal`, and the search would spend the director's eleven minutes proving it. He
+        # gets his draft map and the reasons — which is what that path already hands him. The one
+        # `court_budget` call below is skipped too: on a refusing week it answers a different
+        # question (`does_not_fit`) and reports no floor to put on a calendar.
+        return {"calendars": [], "choice_required": False, "wins_every_leg": None,
+                "finalists": [], "not_searched": "the week as supplied cannot be scheduled, so "
+                                                 "there is no calendar to improve",
+                "search": {"builds": spent["total"], "search_builds": 0,
+                           "seconds": round(_elapsed(), 1),
+                           "rounds": 0, "candidates": 0, "refused": 0,
+                           "allowance_seconds": allowance, "max_builds": max_builds,
+                           "stopped": "week refused", "still_improving": False,
+                           "finalists_priced": 0},
+                "sentences": ["The week as supplied cannot be scheduled, so there is no calendar "
+                              "to improve — the reasons and what would fix them are on the plan."]}
+    _cb_t0 = datetime.datetime.now()
+    draft_courts, _draft_cb = _courts(draft_map)
+    cb_cost = max((datetime.datetime.now() - _cb_t0).total_seconds(), 0.1)
+    draft_cal = _best_calendar("draft", draft_map, draft_read, draft_courts)
+    _say(f"  the calendar as derived: busiest day {draft_cal['busiest_day']['matches']} · "
+         f"{draft_courts} courts to book · {draft_cal['out_of_order']} out of the daily order")
+
+    # ⚠ THE PRICING RESERVE IS MEASURED, NEVER QUOTED (D-16's lesson, `_engine_check`'s
+    # precedent). The finalists' court bills come OUT of the allowance — they are the same wait —
+    # so the hill-climb's deadline is what is left after the bills just measured are set aside.
+    # A shortened allowance buys FEWER bills rather than none: the winner is priced or there is
+    # no second calendar to offer at all.
+    room = max(allowance - _elapsed(), 0.0)
+    n_final = max(1, min(finalists, int(room // cb_cost)))
+    search_deadline = _elapsed() + max(room - n_final * cb_cost, 0.0)
+
+    # ---- the hill-climb --------------------------------------------------------------------
+    need = _best_need(setup, levels, divs=divs)
+    current, cur_pair = dict(draft_map), _best_pair(draft_read)
+    draft_pair = cur_pair
+    pool: dict = {}          # arrangement -> (pair, reading). THE DRAFT IS NEVER IN IT (§5a).
+    rounds, refused, stopped = 0, 0, "local optimum"
+
+    while True:
+        best_here = None
+        for ev, dt in _best_candidates(need, current, dates):
+            if max_builds is not None and spent["search"] >= max_builds:
+                stopped = "build bound"
+                break
+            if _elapsed() >= search_deadline:
+                stopped = "allowance"
+                break
+            trial = dict(current)
+            trial[ev] = dt
+            spent["search"] += 1
+            # ⚠ BEFORE THE LEGALITY FILTER, NOT AFTER. Sited after the `continue` below it, a
+            # candidate that refused the week on exactly the 200th build swallowed that whole
+            # progress line — seen on the first full-allowance run, which reported 150 and then
+            # 250. D4's ruling is that generation says what it is doing WHILE it runs, and a
+            # silence of that length at Step 2 is what it exists to prevent.
+            if spent["search"] % 50 == 0:
+                _say(f"  … {spent['search']} versions of the week tried, best so far "
+                     f"{cur_pair[0]} on the busiest day · {cur_pair[1]} out of the daily order")
+            r = _read(trial)
+            if not _best_legal(r):
+                # not a worse calendar — not a calendar. Measured at 35 of 343 on round 1.
+                refused += 1
+                continue
+            pair = _best_pair(r)
+            if pair < draft_pair:
+                # Only arrangements that BEAT the draft on legs 1 and 3 are eligible to be the
+                # optimized calendar. Offering him a second calendar that is worse on the two
+                # legs the search steers on is noise, and §5a's one-calendar case is the answer.
+                pool[tuple(sorted(trial.items()))] = (pair, r)
+            # TIES: score, then division name, then date. Never iteration order.
+            if best_here is None or (pair, ev, dt) < best_here[0]:
+                best_here = ((pair, ev, dt), r)
+        if stopped != "local optimum":
+            break
+        if best_here is None or best_here[0][0] >= cur_pair:
+            break                                   # no improving move: a local optimum
+        (pair, ev, dt), _r = best_here
+        current[ev], cur_pair = dt, pair
+        rounds += 1
+        _say(f"  round {rounds}: moved {ev} to {_console_day(dt)} — busiest day {pair[0]} · "
+             f"{pair[1]} out of the daily order")
+
+    # ⚠ WHAT "STILL IMPROVING" MEANS HERE, stated because the looser reading OVERCLAIMS and the
+    # first smoke run produced exactly that: a search cut off before it had found anything at all
+    # reported itself as still improving, which would put a sentence in front of the director
+    # inviting him to spend more time on a search that had shown nothing. Both halves are
+    # required — the search was cut short by the allowance or the build bound RATHER THAN by
+    # running out of improving moves, AND it had actually found a better arrangement by then.
+    # Measured on the pilot: all three rounds found an improving move, so this fires on his own
+    # committed seed rather than being hypothetical.
+    still_improving = stopped != "local optimum" and bool(pool)
+
+    # ---- §2.3 option A: price leg 2 on the finalists, and let it decide among them ----------
+    ranked = sorted(pool.items(), key=lambda kv: (kv[1][0], kv[0]))[:n_final]
+    if ranked:
+        _say(f"  pricing the courts on the best {len(ranked)} of them …")
+    finalist_rows, priced = [], []
+    for key, (_pair, reading) in ranked:
+        # ⚠ THE ALLOWANCE IS THE OUTER BOUND, AND THE PRICING RESPECTS IT TOO. The reserve above
+        # is an ESTIMATE off one measured court bill, and an estimate can undershoot: the first
+        # full-allowance run measured 77 s a bill against the 70 s it had set aside and finished
+        # at 11.6 minutes — inside the ruled 10-12, but by drift rather than by design. So the
+        # last bills are dropped rather than allowed to run past the wait he was promised, and
+        # `finalists_priced` records how many were actually bought. ALWAYS AT LEAST ONE: without
+        # a priced arrangement there is no second calendar to put in front of him at all.
+        if priced and _elapsed() + cb_cost > allowance:
+            break
+        fmap = dict(key)
+        courts, _cb = _courts(fmap)
+        cal = _best_calendar("optimized", fmap, reading, courts)
+        finalist_rows.append({"busiest_day": dict(cal["busiest_day"]),
+                              "courts_to_book": courts,
+                              "out_of_order": cal["out_of_order"],
+                              "finals_day": cal["finals_day"]})
+        priced.append(cal)
+    # D-54's order decides the winner among them; the map itself breaks a three-way tie so the
+    # answer cannot depend on which finalist was priced first.
+    priced.sort(key=lambda c: (_best_trio(c), tuple(sorted(c["finals_day"].items()))))
+    best_cal = priced[0] if priced else None
+    if best_cal is not None:
+        best_cal = dict(best_cal)
+        # ⚠ THE MOVES ARE READ OFF THE TWO CALENDARS, NOT OFF THE ROUNDS THE HILL-CLIMB TOOK, and
+        # the smoke run is why: the winner can come out of the pool of arrangements SEEN during a
+        # round that was cut off before its move was applied, and then `rounds` is 0 while the
+        # calendar plainly differs — which reported "moves: []" beside a calendar that had moved a
+        # division. The diff against the draft is the fact the director is owed either way.
+        best_cal["moves"] = [{"event": ev, "from": draft_map[ev],
+                              "to": best_cal["finals_day"][ev]}
+                             for ev in sorted(draft_map)
+                             if best_cal["finals_day"].get(ev) != draft_map[ev]]
+        best_cal["still_improving"] = still_improving
+
+    search = {"builds": spent["total"], "search_builds": spent["search"],
+              "seconds": round(_elapsed(), 1),
+              "rounds": rounds, "candidates": len(_best_candidates(need, draft_map, dates)),
+              "refused": refused, "allowance_seconds": allowance,
+              "max_builds": max_builds, "stopped": stopped,
+              "still_improving": still_improving, "finalists_priced": len(finalist_rows)}
+    calendars = [draft_cal] + ([best_cal] if best_cal is not None else [])
+    out = {"calendars": calendars,
+           # ⚠ ONE CALENDAR, NOT TWO, WHEN THERE IS NOTHING TO CHOOSE (§5a). Asking him to pick
+           # between two identical calendars teaches him to stop reading the question.
+           "choice_required": best_cal is not None,
+           "wins_every_leg": None,
+           "finalists": finalist_rows, "search": search,
+           "sentences": _best_sentences(draft_cal, best_cal, search)}
+    if best_cal is not None:
+        # Said plainly when it is true — the ruling is that HE chooses, not that the tool
+        # withholds what it knows. STRICTLY better on every leg, matching the sentence: a
+        # calendar level on two legs has not won them, and `sentences` says the weaker thing.
+        d, b = _best_trio(draft_cal), _best_trio(best_cal)
+        if all(x < y for x, y in zip(b, d)):
+            out["wins_every_leg"] = "optimized"
+        elif all(x < y for x, y in zip(d, b)):
+            out["wins_every_leg"] = "draft"
+    for line in out["sentences"]:
+        _say(line)
+    return out
+
+
 def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_events=None,
-                progress=True):
+                progress=True, optimize=False, allowance=_BEST_ALLOWANCE,
+                finalists=_BEST_FINALISTS, max_builds=None):
     """F7 step 2: derive the ENGINE's finals map for the TD to confirm — td-setup/v1 ->
     ingest the draws -> Pass-1 master draft -> the td-finals-plan/v1 doc the finals-map
     editor is generated from. `finals` (an earlier td-finals-map/v1) seeds pins for a
@@ -4448,6 +5232,22 @@ def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_
       grid_events  : grade only these divisions (the harness's lever). None = the shipped depth.
       progress     : the grid states what it is doing while it runs (D4's ruling — never a
                      silent stall at runbook Step 2). False silences it.
+
+    BEST-1 adds the September search, on exactly the same terms — OPT-IN and additive:
+
+      optimize     : search for a better finals calendar and attach the §13 `optimized_map`
+                     block — BOTH calendars (the free draft and the search's winner) with all
+                     three of D-54's numbers each, so Step 2 can put them in front of the
+                     director and take his choice (§5a, ruled 8/29). DEFAULT FALSE, AND THE
+                     DEFAULT IS THE JANUARY PROTECTION: it is a property, not a branch — there
+                     is no lane flag and no September mode, a January run simply never asks, so
+                     January's bytes cannot move. With the key absent the doc and the generated
+                     console are byte-for-byte what they are today, which is the same guarantee
+                     `engine_check` carries and what `tests/fmap2_proposal.py` part D pins.
+      allowance    : seconds for the whole search, default 660 (the ruled 10-12 minutes).
+      finalists    : how many arrangements get a real court bill (§2.3 option A).
+      max_builds   : bound the search by builds instead of the clock — the deterministic lever
+                     a harness needs to prove the same input returns the same map twice.
 
     NOMAP-1 adds the other half of `engine_check=True`: if the full build REFUSES the week, this
     still returns a plan doc — the draft is desk-derived and survives — carrying `week_refusal`
@@ -4471,8 +5271,13 @@ def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_
     # ASSIGN-2 adds the round-robin half for exactly the same reason: with the RR parents left
     # off this draft, pinning it sent all 8 RR divisions back to their computed days.
     dates = slate_doc["dates"]
-    anchors = _desk_finals(_desk_seed(levels, dates, draws)[0], divs, dates, skip=set(pins))
-    rr_st, rr_an, _w = _rr_desk_seed(levels, dates, draws)
+    # KEY-1: the same source window the build lane derives, for the same reason — a draft naming
+    # days the build lane would not use is exactly what ASSIGN-1 fixed here in the first place.
+    window_warn: list = []
+    source_dates = _draws_window(levels, window_warn)
+    anchors = _desk_finals(_desk_seed(levels, dates, draws, source_dates)[0], divs, dates,
+                           skip=set(pins))
+    rr_st, rr_an, _w = _rr_desk_seed(levels, dates, draws, source_dates)
     rr_parent, _stamped = _rr_parent_days({**rr_st, **rr_an}, divs,
                                           group_rounds=_rr_group_rounds(draws))
     anchors.update(_rr_parent_finals(rr_parent, divs, skip=set(pins)))
@@ -4488,7 +5293,7 @@ def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_
     ms = MS.build_master_schedule(divs, dates, finals_map=pins or None,
                                   finals_anchors=anchors or None,
                                   same_day_finish=joined)
-    ms.warnings.extend(sdf_warn)
+    ms.warnings.extend(window_warn + sdf_warn)
     # §13: the plan's `pins` field is the TD's MOVED subset when the couriered doc carries one
     # (consistent entries only); otherwise the full applied map (an older/hand-built doc).
     sub = (finals or {}).get("pins")
@@ -4534,6 +5339,19 @@ def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_
             plan["week_refusal"] = checked["refused"]
         else:
             plan["engine_check"] = checked
+    # BEST-1: the search is attached LAST and only when asked for, for the same two reasons the
+    # verdict is — `finals_plan.py` (FROZEN, D-3) is not opened, and the key's ABSENCE is the
+    # contract's compatibility guarantee (§13). `divs` is handed over so the search reuses the
+    # one pass this function already made over the draw PDFs rather than parsing them again.
+    #
+    # ⚠ A REFUSED WEEK IS NOT SEARCHED. NOMAP-1's rule holds identically here: a week no legal
+    # schedule can hold has no calendar worth optimizing, and every candidate would be illegal by
+    # `_best_legal`, so the search would spend the director's eleven minutes proving it. He gets
+    # his draft map, the reasons and the remedies — which is what that path already hands him.
+    if optimize and "week_refusal" not in plan:
+        plan["optimized_map"] = _best_search(setup, levels, plan, allowance=allowance,
+                                             finalists=finalists, max_builds=max_builds,
+                                             progress=progress, divs=divs)
     return plan
 
 

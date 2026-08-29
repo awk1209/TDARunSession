@@ -1,7 +1,7 @@
 # September run bundle — START HERE
 
-Cut from the repo by `make_run_bundle.py` at commit `c1a552a` and verified from the extract.
-**The runbook (`WWTC_test_run_starter.md`, Runbook 8.8) governs the whole run.** This page is not a
+Cut from the repo by `make_run_bundle.py` at commit `4fe8246` and verified from the extract.
+**The runbook (`WWTC_test_run_starter.md`, Runbook 8.12) governs the whole run.** This page is not a
 procedure and adds nothing to it.
 
 ## The opening prompt — paste this to begin

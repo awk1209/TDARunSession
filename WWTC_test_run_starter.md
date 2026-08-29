@@ -1,6 +1,63 @@
-# WWTC Scheduler — Guided Run (Runbook 8.8)
+# WWTC Scheduler — Guided Run (Runbook 8.12)
 
-*TDA V3.1 · **Runbook 8.8 (2026-08-27) — the growth pass.** Step 3.6 gains the half of the growth
+*TDA V3.1 · **Runbook 8.12 (2026-08-29) — five things the September run paid for by hand.** No
+lane change, no new courier stop, no step moves; one new module function and one new deliverable.
+**The defects, all five off the 8/29 September run's own report:** every finals console a run
+published arrived in the director's gallery under one identical name, so the calendar he approved
+and the proposals he discarded were indistinguishable; the announced calendar had no page at all,
+so the run built a printable one by hand; the bundle cut no `.gitignore`, so the run's tree filled
+with generated files; Step 3a told a director who had moved nothing that "the calendar he
+announces will say those days were moved after the check", which is false in both halves on a
+zero-move paste; and the booking answer said nothing about idle opening hours or unused floodlit
+nights, both of which it was already carrying. **What changes here:** the guided console gains a
+`doc_label` and the three publish sites pass one each; Step 3.6 writes a printable calendar page
+beside the JSON, rendered off the announced record and re-deriving nothing; Step 3a branches on
+whether the paste actually moved days and skips the offer where it did not; Step 3.5's readback
+gains a three-line hours-and-lights slot in the ⛔ read-off-the-answer discipline. The engine's
+outputs are untouched.*
+
+*Previously — **Runbook 8.11 (2026-08-29) — the pre-flight stops asking, and holds only when
+nothing at all reads.** No lane change, no new courier stop, no new module, and no step above or
+below 0.5 moves. **The defect:** the run opened by asking permission twice — may I check the
+imports, may I check your files — and the useful answer to both was always yes, so the two stops
+bought nothing on a good run. On a bad one they cost the director his first move and then paid
+him back in engineer language: a missing PDF reader reached him as a raw `ImportError`, and a
+file set where NOTHING opened closed with a sentence promising the run carries on — the one state
+where that is untrue. **What changes here:** both elicitations and all four of their option
+labels go (2 of the run's 15 stops, and only those); Step 0 runs its imports directly and, when
+they fail, stops in his language first and quotes the error second, naming the two remedy shapes
+that actually occur; Step 0.5 always runs the check and goes three ways — everything read, go on;
+something read, **carry on without asking**; nothing read, stop and sort it out with him. The
+checker itself is unchanged in kind: `preflight.materials_check` still never gates and never
+raises, and gains only a derived `nothing_usable` flag so no session has to invent the threshold.
+Setup gains the two pip readers it never named. Operator ruling 2026-08-29 (OI-59, option 2, plus
+the stop location and run finding 1).*
+
+*Previously — **Runbook 8.10 (2026-08-29) — the added divisions are planned at his number, not at
+three quarters of a bracket.** No lane change, no new courier stop, no new module, and no step
+moves. **The defect:** Step 3.5's second elicitation told the director his added divisions are
+planned at **75% of each bracket**. The engine stopped doing that at S-4, which retired
+`round(draw_size x 0.75)` as a measured defect (assumed total 774 against a real 757, 38 of 42
+rows carrying the wrong `room_left`), and S-2's seam draws each added division at the count he
+states with his stated bracket as the ceiling — re-measured at drafting, 6 of 6 added divisions
+drawn at his own number. The document also contradicted itself: Step 1.5 already said the added
+divisions are built "at the sizes he stated". **What changes here:** that one sentence in Step 3.5,
+and nothing else.*
+
+*Previously — **Runbook 8.9 (2026-08-28) — the refusal answers in four figures, and the run reads it
+as scripted.** No lane change, no new courier stop, no new module. **The defect:** on 2026-08-28 a
+September re-run refused, and the section of the report that is supposed to say what to book
+carried **none of the four figures a director needs** — not how many courts, not on which days,
+not at what times, not for which divisions — while five of the six moves this step already
+scripted existed only as prose and **two of them were skipped**. **What changes here:** Step 2's
+refusal branch becomes a numbered ⛔ checklist of six moves, every one a MUST, with a four-figure
+readback template whose every slot is read off the payload at run time and never typed; the
+editor handover and the his-decision ask are held as text by a harness so a session cannot
+quietly drop them again; a standing rule binds every re-test and what-if that ends in a refusal
+to print the fresh report verbatim; and Step 3.5's surplus answer gains the three-slot readback
+the deficit direction already had.*
+
+*Previously — **Runbook 8.8 (2026-08-27) — the growth pass.** Step 3.6 gains the half of the growth
 answer a bracket division never had: the readback now says the day play would begin once a
 division outgrows its draw, or reads a sentence where his week has no room for the extra round —
 and the calendar he shelves records what produced it, so a January reader can tell a day that was
@@ -498,7 +555,15 @@ are identical to 7.0.
 ## Setup (do this first — one time)
 
 1. **Start a new chat inside the project.** Turn on **Code Execution and File Creation**.
-2. **Make the project modules available** (attach or rely on project knowledge). **The set is
+2. **Install the two reader libraries the run needs:** `pip install pypdfium2 openpyxl`.
+   *(PRE-1, run finding 1, 2026-08-29 — neither was named anywhere in this document, and a run
+   that session hit both. `pypdfium2` reads the draws PDFs and is imported at the top of
+   `draws_pdf.py`, so without it Step 0 fails on its very first import; `openpyxl` reads `.xlsx`
+   player lists and is imported lazily inside `wwtc_ingest.read_table`, so without it Step 0
+   passes clean and the failure surfaces at Step 0.5 instead — as the tool's own problem, not the
+   director's file. Attaching every module in the table below does not supply either one: they are
+   pip packages, not project files.)*
+3. **Make the project modules available** (attach or rely on project knowledge). **The set is
    the table below** — `wwtc_pipeline.py` and its imports. *(The count is deliberately not
    restated here: this line read "20 modules" over a table of 21 from the 8.1 correction until
    S-1, and a director attaching by count drops one and hard-blocks at Step 0. Attach the table.
@@ -565,11 +630,11 @@ are identical to 7.0.
    source tree off `sys.path`, and import every Step-0 entry point from there. That is the only
    check that catches a module the list forgot, and it is what the three stale-list incidents
    above have in common: each was found by a run, not by reading.
-3. **No browser tabs to prepare.** Every console reaches you as a published artifact link
+4. **No browser tabs to prepare.** Every console reaches you as a published artifact link
    during the run — the Setup console at Step 1, the finals-map editor at Step 3, the
    preloaded Edit console at Step 5. Attach `setup_console.html` alongside the modules so the
    run surface can publish it.
-4. Say **"start a WWTC run."** The assistant takes it from here — its first question is the
+5. Say **"start a WWTC run."** The assistant takes it from here — its first question is the
    fork: which kind of run this is, and what that kind needs attached.
 
 ---
@@ -629,45 +694,85 @@ missing file costs a sentence at the door instead of a stop mid-run.
 
 Then go to Step 0.
 
-### Step 0 — Confirm imports
-**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Ready to start the run? I'll confirm the pipeline imports first."*
-- **`Yes, check imports`** → import `build_from_setup` and `finals_plan` from `wwtc_pipeline`,
-  `render_finals_console` from `finals_plan`, **`render_guided_finals_console` from
-  `finals_guidance`** (FMAP-2 — Step 2's editor comes from the wrapper, not the frozen renderer),
-  `apply_schedule_edits` from `scheduler_flow`,
-  `render_all` **and `render_rekey`** from `draw_sheets`, `write_csv` **and
-  `write_exceptions_csv`** from `csv_export`,
-  `editor_plan` and
-  `render_editor_console` from `editor_plan`, **and `import serve_tennis_intake`** (Step 4's
-  ingest path loads it lazily — importing it here surfaces a missing file now instead of a
-  mid-run hard block; a 7.0 sim hit exactly that). **8.0 adds the two the new steps need:
-  `scheduled_from_result`, `report` and `render_text` from `schedule_report` (Step 5.5) and
-  `run_of_play_by_court`, `schedule_by_player`, `render_run_of_play_html` and
-  `render_by_player_html` from `schedule_views` (Step 6).** Every one of these is checked HERE
-  for the same reason `serve_tennis_intake` is: a module that first loads at Step 5.5 turns a
-  missing file into a hard block after the TD has already done the editing.
-  **CONS-1 adds the two the materials check and the new Step 1 need: `render_setup_console` from
-  `wwtc_pipeline`, and `materials_check` and `materials_check_text` from `preflight`.**
-  **SETUP-2 adds one more: `dates_from_draws` from `wwtc_pipeline`** — Step 1 calls it before it
-  renders, so a missing name would block the run at its first screen.
-  **S-8 adds one more: `import projected_field`** — nothing else in the run loads it, and its own
-  first use is at Step 1.5, on the far side of the console trip. Found there, a missing file costs
-  the director everything he has already typed in; found here, it costs a sentence at the door.
-  Confirm they import cleanly.
-- **`Not yet`** → stop; tell the user to attach files / enable Code Execution, then resume.
+### Step 0 — Confirm imports  *(PRE-1, Operator ruling 2026-08-29 — this step no longer asks)*
+*(OI-59. The useful answer to "may I check the imports?" was always yes, so the question bought
+nothing on the runs where everything was fine — and on the run where something was actually
+wrong it spent the director's first move on permission and then handed him a raw `ImportError`.
+The check runs itself now. What changed is not whether it runs, but what he hears when it fails.)*
 
-### Step 0.5 — Check the materials  *(CONS-1 / Operator ruling 8.2)*
-**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Before I build your setup page, shall I check that your draws and player lists actually open?"*
-- **`Check them`** → run:
-  ```python
-  materials = preflight.materials_check()          # read-only; never raises, never blocks
-  print(preflight.materials_check_text(materials))
-  ```
-- **`Skip the check`** → go straight to Step 1. (The console renderer still refuses a draws file
-  with no text in it, so nothing garbled can reach the picker either way.)
+**Run the import block directly** — straight after the fork's attach confirmation, no stop and no
+question. Import `build_from_setup` and `finals_plan` from `wwtc_pipeline`,
+`render_finals_console` from `finals_plan`, **`render_guided_finals_console` from
+`finals_guidance`** (FMAP-2 — Step 2's editor comes from the wrapper, not the frozen renderer),
+`apply_schedule_edits` from `scheduler_flow`,
+`render_all` **and `render_rekey`** from `draw_sheets`, `write_csv` **and
+`write_exceptions_csv`** from `csv_export`,
+`editor_plan` and
+`render_editor_console` from `editor_plan`, **and `import serve_tennis_intake`** (Step 4's
+ingest path loads it lazily — importing it here surfaces a missing file now instead of a
+mid-run hard block; a 7.0 sim hit exactly that). **8.0 adds the two the new steps need:
+`scheduled_from_result`, `report` and `render_text` from `schedule_report` (Step 5.5) and
+`run_of_play_by_court`, `schedule_by_player`, `render_run_of_play_html` and
+`render_by_player_html` from `schedule_views` (Step 6).** Every one of these is checked HERE
+for the same reason `serve_tennis_intake` is: a module that first loads at Step 5.5 turns a
+missing file into a hard block after the TD has already done the editing.
+**CONS-1 adds the two the materials check and the new Step 1 need: `render_setup_console` from
+`wwtc_pipeline`, and `materials_check` and `materials_check_text` from `preflight`.**
+**SETUP-2 adds one more: `dates_from_draws` from `wwtc_pipeline`** — Step 1 calls it before it
+renders, so a missing name would block the run at its first screen.
+**S-8 adds one more: `import projected_field`** — nothing else in the run loads it, and its own
+first use is at Step 1.5, on the far side of the console trip. Found there, a missing file costs
+the director everything he has already typed in; found here, it costs a sentence at the door.
+Confirm they import cleanly.
+
+**If they import cleanly — one sentence, and straight on to Step 0.5.** *"The pipeline modules
+all load."* Nothing else: no counts, no module list read back, no question.
+
+**If anything fails to import — ⛔ STOP, and say it in his language FIRST.** The raw
+`ImportError` is the second thing he reads, never the first — the same discipline Step 0.5 has
+always had for files, and 2026-08-29 is the run where its absence here cost a director his
+opening move. Say what is wrong, then quote the error verbatim, then name the fix. Two shapes
+cover what actually happens:
+
+- **A module file was not attached** — the error names it (`No module named 'schedule_views'`
+  and the like, for any name in the table above). Tell him which file is missing, ask him to
+  attach it, and resume at Step 0. Do not carry on without it and do not work around it: the
+  module list is the attach table in Setup, and a run missing one of them hard-blocks later, in
+  a worse place.
+- **A reader library is not installed** — this is the tool's own problem, not his files, and it
+  must be said that way. **`pypdfium2`** is imported at the top of `draws_pdf.py`, so its
+  absence fails Step 0's very first import: *"this machine can't read PDFs at all yet — that's
+  the tool's setup, not your draws."* **`openpyxl`** is imported lazily inside
+  `wwtc_ingest.read_table`, so its absence passes Step 0 clean and surfaces at Step 0.5 instead,
+  as a tooling record the materials check already names as the tool's own problem — *"this
+  machine can't read spreadsheets at all."* Either way the fix is the same and it is not his to
+  diagnose: `pip install pypdfium2 openpyxl`, then resume.
+
+### Step 0.5 — Check the materials  *(CONS-1 / Operator ruling 8.2; PRE-1 ruling 2026-08-29)*
+*(OI-59. The option to skip this step existed because the check was optional. It is not any more —
+it is read-only, it takes seconds, and it is the only thing standing between a bad file and a
+console built on top of it. So the step stops asking and just runs.)*
+
+**Run the check directly** — no stop, no question:
+```python
+materials = preflight.materials_check()          # read-only; never raises, never blocks
+print(preflight.materials_check_text(materials))
+```
 
 **Read the result back in plain words, with the counts** — *"Draws read: 50 divisions — 4 at
-Level 1, 46 at Level 2; all four player lists, 1,658 players."* Nothing else needed: go to Step 1.
+Level 1, 46 at Level 2; all four player lists, 1,658 players."*
+
+**Then it goes one of three ways** (PRE-1, Operator ruling 2026-08-29):
+- **Everything read** — go to Step 1, as today. Nothing else needed.
+- **Some of it read, some did not** (`nothing_usable` is `False` and `ok` is `False`) — **carry
+  on to Step 1 without asking.** Name what is missing and any candidates the check found, offer
+  the in-session repairs below, and go. **Do not stop here.** A director whose draws are perfect
+  and whose one player list is misnamed must walk through this step, not be held at it — that
+  is the whole shape of ruling 8.2 and it is unchanged.
+- **Nothing read at all** (`materials["nothing_usable"]` is `True`) — **⛔ STOP.** Say it plainly
+  — *"none of the files I have here will open, so there is nothing to build your setup from"* —
+  work the troubleshooting list below with him as the script, and wait. This is the one state
+  where the old closing line ("the run carries on") was untrue, and it is now the runbook's stop.
 
 **If something is wrong, troubleshoot it with the TD in his language. Never quote the raw error
 first.** Fix what can be fixed here, in this session:
@@ -690,10 +795,21 @@ first.** Fix what can be fixed here, in this session:
 - **A year whose layout the tool does not recognise** → this is the A6b format-drift rule: report
   it and route it to the Engineer as its own brief. **Never patch a parser live in a run.**
 
-**Then proceed, always. THE CHECK NEVER GATES.** Whatever read cleanly is used; whatever did not
-falls back to the typing boxes in Step 1, with the typo-catcher (OI-54) still on guard at the
-door. No state of the director's files can hold the run here — a tournament with perfectly good
-draws must never be stuck at the first step over two *optional* questions.
+**THE CHECK NEVER GATES — and as of 2026-08-29 the RUN holds in exactly one state.** Two
+different truths, and both are load-bearing:
+
+- **The function never gates and never raises.** `preflight.materials_check` reports on every
+  state of the materials, including a completely empty directory, and returns. It has no refusal
+  in it and is not to be given one — the stop below is the runbook's action, taken by the
+  session reading the report, never the checker's.
+- **Whatever read cleanly is used**, and whatever did not falls back to the typing boxes in
+  Step 1, with the typo-catcher (OI-54) still on guard at the door. A tournament with perfectly
+  good draws must never be stuck at the first step over *optional* questions — 8.2's reason,
+  intact, and a nothing-usable stop does not touch that case: there are no good draws to be
+  stuck over.
+- **The one hold:** when `nothing_usable` is `True` — not one draws file and not one player list
+  opened — there is nothing for Step 1 to be built on, and the run waits with him instead of
+  publishing a console over an empty field. Any partial state carries on.
 
 ### Step 1 — Setup console → one `td-setup/v1` block  *(courier stop 1)*
 **GENERATE the console first, then publish it (CONS-1 — the shape Steps 2 and 5 already have):**
@@ -875,6 +991,100 @@ fact about his field, not a fault, and R18 already keeps a fabricated bracket of
 deliverable.
 
 ### Step 2 — Derive the finals map (silent) → hand the TD the editor
+
+#### Step 2 · FIRST, THE SEARCH — and it is a SEPTEMBER sub-step only  *(BEST-1)*
+
+**⚠ LANE GATE, and it is the first thing to settle.** This sub-step belongs to the **September
+publish run** and runs nowhere else. In a January run the calendar was published in September and
+re-enters through reconciliation — there is nothing here to search, the search is never offered,
+and you go straight to the elicitation below. **A January run that offers this has left its lane.**
+
+Until now Step 2 handed him **one** calendar: worked out from the rounds each division needs, set
+as late as each day allows, and defensible — but nothing *chose* it, because there was nothing to
+choose between. This sub-step gives him a second one and lets him pick.
+
+**⛔ ELICIT — your action for this sub-step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the sub-step.** *"Before you look at the finals map: I can spend about eleven minutes looking for a quieter version of your week. It builds your whole tournament over and over, moving one division's final at a time, and keeps the best it finds. At the end you get both calendars — the one worked out from your divisions' rounds, and the one the search found — with three numbers each, and you choose which one the editor opens on. Or go straight to the map."*
+
+- **`Look for a quieter week`** → run:
+  ```python
+  plan = wwtc_pipeline.finals_plan(setup, optimize=True)     # ingest -> draft -> the search
+  ```
+  **⏳ SAY THE WAIT BEFORE YOU START IT, NEVER AFTER** — the same rule the check below carries,
+  for the same reason. **About eleven minutes**, and that is the number he plans around. It prints
+  its progress while it runs, so the sub-step is never a silent stall.
+  **⚠ RUN IT IN THE FOREGROUND. Never send a long step to the background on the run surface** —
+  work handed off between tool calls there dies without saying so (the 2026-08-25 rehearsal).
+  Then go to **the two calendars** below. ⚠ **Do not report a single number out of this call until
+  you have read that section** — which calendar the numbers belong to is the whole point.
+- **`Go straight to the map`** → run nothing here. The elicitation below is next, unchanged, and
+  the run is exactly what it is today.
+
+> ⚠ **THE SEARCH DOES NOT RUN ON A WEEK THAT CANNOT BE SCHEDULED.** If the week as supplied has
+> more matches than its courts can hold, `optimized_map` comes back with **no calendars** and a
+> `not_searched` line, and it comes back **fast** — say so for what it is and go to the refusal
+> checklist below. There is no calendar to improve, and the six moves there are what he is owed.
+
+#### The two calendars — put both in front of him, and the choice is HIS  *(BEST-1; Operator ruling 2026-08-29)*
+
+⚠ **THE CHOICE IS ELICITED HERE, IN THIS CONVERSATION. There is no two-map console screen, and
+none is to be built.** The chosen calendar re-enters through the finals-map loop this runbook
+already uses, which is why this costs no console code at all. A session that finds itself
+designing a screen for this has taken a road nobody asked for — stop and say so.
+
+⚠ **ONE CALENDAR OR TWO IS DECIDED BY `plan["optimized_map"]["choice_required"]`, NEVER BY
+PREFERENCE**, exactly as the three branches below are decided by `plan`.
+
+**When `choice_required` is `false`** — the search found nothing better than the calendar the tool
+already had. **Do not ask him to choose between two identical calendars**: say in one sentence
+that the search found nothing better, and go straight to the elicitation below. There is nothing
+here for him to decide.
+
+**When `choice_required` is `true`** — print `plan["optimized_map"]["sentences"]` **VERBATIM**.
+They carry both calendars with all three numbers each, in his own terms, and every figure in them
+was measured on his field. **Do not summarise them, re-order them, or re-type a number out of
+them** (ruling 12). Then elicit:
+
+**⛔ ELICIT** *"Two calendars, and neither one is the tool's recommendation. Which should the editor open on?"*
+
+- **`The calendar as derived`** → `pick = plan["optimized_map"]["calendars"][0]`
+- **`The searched calendar`** → `pick = plan["optimized_map"]["calendars"][1]`
+
+Then seed the map he picked into the loop that already exists — this is the ordinary re-edit
+courier shape, with the paste replaced by his choice:
+
+```python
+draft = plan["optimized_map"]["calendars"][0]["finals_day"]
+seed = {"schema": "td-finals-map/v1", "tournament": plan["tournament"], "confirmed": True,
+        "finals_map": dict(pick["finals_day"]),
+        "pins": {ev: dt for ev, dt in pick["finals_day"].items() if draft[ev] != dt}}
+```
+
+…and hand `finals=seed` to whichever branch of the elicitation below he picks
+(`finals_plan(setup, finals=seed, engine_check=True)` for the check, `engine_check=False` for the
+map alone). **From that point the run carries on exactly as it does today** — his calendar is what
+the editor opens on, what Step 3.5 prices and what Step 4 builds.
+
+⚠ **NEITHER CALENDAR IS THE TOOL'S RECOMMENDATION, AND YOU DO NOT MAKE ONE.** The search can buy
+a much quieter week and cost more courts to book, and the tool neither takes that trade for him
+nor refuses it — **it shows him both and he picks.** Where one calendar genuinely is better on all
+three numbers, `sentences` says so plainly and both are still shown: the ruling is that he
+chooses, not that the tool withholds what it knows. ⚠ **Which way the trade falls is a fact about
+his field and is READ OFF THE NUMBERS IN FRONT OF YOU, never anticipated** — it has been measured
+going both ways on the same seed, and a session that tells him what to expect before the search
+has run is quoting a figure at a real director (ruling 12).
+
+⚠ **IF THE SEARCH RAN OUT OF TIME WHILE IT WAS STILL IMPROVING, `sentences` SAYS SO — PRINT IT
+AND MEAN IT.** Whether to spend more time is his call. To keep going, re-run the same call with a
+longer allowance (`finals_plan(setup, optimize=True, allowance=<seconds>)`) and **name the new
+wait before starting it.**
+
+⚠ **NOTHING HERE GRADES A DAY HE LATER CHOOSES.** Showing two calendars with their numbers is the
+tool's own two proposals, before he has touched anything. The moment he drags a division the
+existing discipline takes over unchanged: the chip goes neutral, nothing is removed, and the tool
+never tells him his day is worse.
+
+#### Step 2 · the check, and the editor
+
 **⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Ingest the draws, then check every division's finals day against a full build? The check itself takes about ten minutes — it is what lets the map tell you which days will actually hold."*
 
 *(Assistant: if he asks whether it is worth running, the recommendation is made on **how big his
@@ -885,10 +1095,19 @@ became a recommendation once already.)*
 - **`Derive it`** → run:
   ```python
   plan = wwtc_pipeline.finals_plan(setup, engine_check=True)   # ingest -> draft -> the check
-  html = finals_guidance.render_guided_finals_console(plan)    # the editor, with the verdict on it
+  html = finals_guidance.render_guided_finals_console(          # the editor, with the verdict on it
+      plan, doc_label="the two calendars")                      # names THIS publish in his gallery
   # write html to a file and IMMEDIATELY publish it as a private artifact (7.0) — hand over
   # the link (fallback: outputs/ + open-in-browser instructions)
   ```
+  ⚠ **`doc_label` IS WHAT KEEPS HIS GALLERY LEGIBLE, AND EACH PUBLISH USES THE ONE WRITTEN AT ITS
+  OWN SITE** (FIX-1, off the 8/29 run's finding 6). A September run publishes this console three
+  times or more, and until this label every one of them arrived under the same name — the calendar
+  he approved and the proposals he discarded, side by side in his list, indistinguishable. The
+  three labels are **`"the two calendars"`** here, **`"for your edits"`** at Step 3's re-seed and
+  **`"re-check"`** at each Step 3a re-check. Use them as written; you may append his own words
+  after them, and **never a clock, a date or a counter** — the same rule the announced calendar's
+  label follows, and for the same reason: two runs of the same inputs must produce the same file.
   **⏳ SAY THE WAIT BEFORE YOU START IT, NEVER AFTER.** `engine_check=True` builds the whole
   tournament once per candidate day — around 300 builds on the WWTC field, roughly ten minutes.
   It prints its progress while it runs, so the step is never a silent stall; the TD should be
@@ -918,37 +1137,72 @@ became a recommendation once already.)*
   immediate; nothing tells him which days hold.
 - **`Hold here — not yet`** → stop and wait.
 
-> **If the week cannot be scheduled at all (NOMAP-1).** The check runs a full build first, and
-> that build can come back saying this week has more matches than its courts can hold. When it
-> does, `plan` carries **`week_refusal`** and **no `engine_check`** — the check never ran, so
-> there is no verdict, and there are no chip numbers to report. Do this, in this order:
+> **⛔ IF THE WEEK CANNOT BE SCHEDULED AT ALL (NOMAP-1) — THE SIX MOVES, EVERY ONE A MUST.** The
+> check runs a full build first, and that build can come back saying this week has more matches
+> than its courts can hold. When it does, `plan` carries **`week_refusal`** and **no
+> `engine_check`** — the check never ran, so there is no verdict, and there are no chip numbers to
+> report.
+>
+> ⚠ **THESE SIX ARE A CHECKLIST, NOT ADVICE, AND SKIPPING ONE IS SKIPPING THE STEP.** Measured on
+> the 2026-08-28 run: five of these moves already existed here as prose and **two of them were
+> skipped** — the draft map was never handed over and the fixes were never put as his decision.
+> Prose did not hold the session to the script, so this is numbered, and moves 4 and 5 — the two
+> that were dropped — are held as text by `tests/answer1_four_figures.py` part E.
 >
 > 1. **Say it plainly, first sentence:** the week as supplied cannot be scheduled, so the finals
 >    days could not be checked against a build.
 > 2. **Print `plan["week_refusal"]["report"]` VERBATIM.** Do not summarise it, re-order it, or
 >    translate it. It names the reasons and then every fix that was tried — each one re-run for
 >    real against these entries, before you saw it — and it says which ones clear the week.
->    **It now ends with a further section, *"What it would take"*, naming how many courts, at
->    which club, on which days and in which part of the day** — again each figure re-run for real
->    before you saw it. Print it with the rest, verbatim, and treat it exactly as the list above:
->    it is his decision, not a recommendation to make for him. Where it says no number of courts
->    fixed the week, **that is the answer** and it is reported as plainly as any other — it also
->    says what it did not try, and those bounds are part of the answer too.
-> 3. **Still hand over the editor.** The draft map does not come from the build, so it survived:
+>    **It ends with a further section, *"What it would take"*, naming how many courts, at which
+>    club, on which days, in which part of the day and for which divisions** — again each figure
+>    re-run for real before you saw it. Print it with the rest, verbatim, and treat it exactly as
+>    the list above: it is his decision, not a recommendation to make for him. Where it says no
+>    number of courts fixed the week, **that is the answer** and it is reported as plainly as any
+>    other — it also says what it did not try, and those bounds are part of the answer too.
+> 3. **⛔ READ THE FOUR FIGURES BACK, in his own terms, off the payload.** Printing the report is
+>    not the same as telling him what to book, and on 2026-08-28 the printed report carried **none
+>    of the four figures** in its instruction section. Read `plan["week_refusal"]["shortfall"]`
+>    and say, once per reason it carries:
+>
+>    > To make this week fit you would need **`<courts>` more courts** at **`<club>`**,
+>    > **`<hours>`**, on **`<days>`**, for **`<divisions>`**.
+>
+>    And where the club is already at everything it owns, the same four figures with what he
+>    cannot do said out loud:
+>
+>    > **`<club>`** is at every court it owns **`<hours>`**. It would take **`<courts>` more
+>    > courts than it owns**, on **`<days>`**, for **`<divisions>`** — and that is not a booking
+>    > you can make. The two ways forward are to move a final off **`<days>`** and check again, or
+>    > to change what **`<club>`** gives you.
+>
+>    ⚠ **EVERY `<slot>` IS READ AT RUN TIME AND NONE OF THEM IS EVER TYPED.** `<courts>` ·
+>    `<club>` · `<hours>` · `<days>` · `<divisions>` come off `shortfall["reasons"]` — the answer
+>    row where the club has room (`answer`), the beyond-what-it-owns row where it does not
+>    (`beyond_owned`), and the club's own figures either way. A session that types a number here
+>    reads it aloud to a real director (ruling 12). Where a row carries **no** figure, say that —
+>    with what was tried and what was not — and never substitute one.
+> 4. **Still hand over the editor.** The draft map does not come from the build, so it survived:
 >    render it the "Skip the check" way (`finals_plan.render_finals_console(plan)`, the same line
 >    that step's option already uses — with no `engine_check` on the doc that is what the guided
 >    wrapper returns anyway) and give the TD the link. **Name it before the link:** *"this is the
 >    map as drafted — it has not been checked, because the week as supplied cannot be scheduled."*
-> 4. **Stop, and put the fixes to the TD as HIS decision.** Read out what the report lists and ask
+> 5. **Stop, and put the fixes to the TD as HIS decision.** Read out what the report lists and ask
 >    which he wants. **Never pick one for him**, never rank them beyond the order they print in,
 >    and never quote a figure from this document — the report's own numbers are the only ones.
->    A row that reads *not tried* means something cheaper already fixes the week; it does not mean
->    it failed.
-> 5. **When he changes something, the answer is a fresh check.** He adjusts the venues, days or
+>    **One ask, and then stop and wait.** A row that reads *not tried* means something cheaper
+>    already fixes the week; it does not mean it failed.
+> 6. **When he changes something, the answer is a fresh check.** He adjusts the venues, days or
 >    match length in the Setup console, couriers a new `td-setup/v1`, and you **loop back to
 >    Step 2** and run it again — the same seeded re-check the step already offers after an edit.
 >    **Name the wait again before starting it.** Nothing here is re-run in the browser: the
 >    console never talks to the engine.
+>
+> ⚠ **EVERY RE-TEST OR WHAT-IF THAT ENDS IN A REFUSAL PRINTS THE FRESH REPORT VERBATIM.** You may
+> summarise on top of the report; never instead of it. This binds the loop above, the re-check
+> after any edit, and every `try_change` at Step 3.5 — measured 2026-08-28, when the second
+> refusal of a run was summarised freelance and the director never saw what the tool actually
+> said.
 >
 > **Do not go on to Step 3 or Step 4 on a refused week.** The build there will refuse for the same
 > reason, and every later step would be running against a week that has no schedule.
@@ -1001,9 +1255,11 @@ one. Say so plainly and offer the check:
 > run it: about ten minutes, and it builds your whole tournament to grade them.
 
 **BRANCH 3 — the week was refused (NOMAP-1).** The check ran and returned **no verdict at all**:
-`plan` carries `week_refusal` and no `engine_check`. He gets the refusal report printed verbatim
-(the blockquote above scripts that) **and an unchecked draft map**, which survives because it is
-desk-derived rather than built:
+`plan` carries `week_refusal` and no `engine_check`. He gets the refusal report printed verbatim,
+**the four figures read back to him**, and an **unchecked draft map**, which survives because it
+is desk-derived rather than built. ⚠ **The six-move checklist in the blockquote above is what
+scripts this, and it is a checklist** — the words below are move 1 and nothing more; moves 2 to 6
+still all have to happen:
 
 > The week as supplied cannot be scheduled, so I could not check the finals days against a build.
 > The report below says why, and every fix in it was re-run for real before you saw it.
@@ -1023,7 +1279,10 @@ minutes and answered in one reasonably concludes something went wrong — and he
   fmap = json.loads(pasted_finals)                 # validated loudly at Step 4
   ```
 - **`Use the engine draft as-is`** → `fmap = None` (identical outcome to a zero-drag emit —
-  the computed draft binds).
+  the computed draft binds). ⚠ **On a September run that used the search (BEST-1), this branch is
+  `fmap = seed` — the calendar he picked at Step 2 — and never `None`.** The map on the board is
+  already a document, so handing `None` on down would throw away the calendar he chose and leave
+  Step 3.5 unable to price the finals-day savings.
 
 > **If the TD moved anything, the check on that board is now HISTORY (FMAP-2).** The court-level
 > verdict is ~300 full builds; it cannot re-run in the browser, and the console never talks to
@@ -1036,7 +1295,9 @@ minutes and answered in one reasonably concludes something went wrong — and he
 >
 > **To get a real answer for the days he chose, loop back to Step 2 with his emit seeded:**
 > `plan = wwtc_pipeline.finals_plan(setup, finals=fmap, engine_check=True)` → regenerate the
-> editor with `finals_guidance.render_guided_finals_console(plan)`. His moves arrive as locked
+> editor with `finals_guidance.render_guided_finals_console(plan, doc_label="for your edits")`
+> — the board that carries the days he moved, named so it is not one more copy of Step 2's in his
+> gallery. His moves arrive as locked
 > days and the check runs again on them. **Name the wait again before starting it** — it is the
 > same ten minutes or so. It is the only honest way to answer what his change did, and it is a
 > choice, not a requirement: he can save and go to Step 4 with the check unrepeated, and the
@@ -1048,14 +1309,58 @@ whenever he asks what his change did" — which put the loop behind the director
 for it. The board teaches it; the runbook did not offer it. Now it is a step, and it runs every
 time a `td-finals-map/v1` comes back, including a zero-drag emit.)*
 
+*(FIX-1, 2026-08-29 — the step still runs on every paste; what it SAYS now depends on whether the
+paste moved anything. S-1's reason stands whole for every paste that moves days. On a paste that
+moves none, the offer was asking him to re-grade the days it had just graded, and the decline
+sentence beside it was false in both halves.)*
+
+**⛔ FIRST, ASK THE PASTE WHETHER ANYTHING ACTUALLY MOVED — the two branches below are decided by
+that answer and never by preference** (FIX-1, off the 8/29 run's finding 4). Both halves are
+already in your hand: the plan the board opened on, and the block he pasted back.
+
+```python
+moved = sorted(ev for ev, dt in ((fmap or {}).get("finals_map") or {}).items()
+               if plan["finals_day"].get(ev) != dt)          # the days he actually changed
+```
+
+⚠ **`fmap` is `None` on Step 3's "use the engine draft as-is" path, and that path skips this step
+outright** — see the rule at the end of this step. The guard above is written so a session that
+reaches the line anyway gets an empty `moved` and the skip branch, never a crash mid-step.
+
+⚠ **This comparison is for the wording below and for nothing else.** It is not a court answer and
+it is not a validation — `finals_plan.finals_map_from_doc` is still the one sanctioned unwrapper
+and it still runs where it always has, at Step 3.5 and Step 4. Nothing here is loud, and a paste
+that is wrong in some other way is still caught there.
+
+---
+
+**If `moved` is empty — HE MOVED NOTHING. Skip the offer, and say why in one sentence.** A
+zero-drag emit is the same calendar the check already graded, so re-running it would build his
+whole tournament for ten minutes to grade the days it just graded. Say it plainly — *"you kept the
+days as they were, so there is nothing new to check"* — and go straight to **Step 3.5**. This is
+the same reason the `fmap = None` path skips, and it is the same skip.
+
+⚠ **AND DO NOT SAY THE DECLINE SENTENCE HERE. IT IS FALSE ON THIS BRANCH** — that is the whole
+defect this branch fixes. On a zero-move paste no day was moved, so the calendar he announces will
+record those days as **checked**, not as moved after the check. A session that reads the
+moved-days wording anyway tells a real director that his announcement will carry a mark it will
+not carry, about days he never touched. What is true here is: **his days stand exactly as they
+were graded, and the announced calendar will say they were checked.**
+
+---
+
+**If `moved` is not empty — HE MOVED DAYS. Offer the re-check, and the wording below is unchanged.**
+
 **⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Check the days you chose? About ten minutes, and it builds your whole tournament to grade them."*
 - **`Check these days`** → loop back to **Step 2** with his emit seeded:
   ```python
   plan = wwtc_pipeline.finals_plan(setup, finals=fmap, engine_check=True)
-  html = finals_guidance.render_guided_finals_console(plan)
+  html = finals_guidance.render_guided_finals_console(plan, doc_label="re-check")
   ```
   **Name the wait before you start it, never after.** Present the result with the Step 2
   presenting turn (branch 1), then come back here — the offer repeats, as many times as he wants.
+  **Each re-check publishes under the `"re-check"` label**, so his gallery does not fill with
+  identically-named boards (FIX-1; you may append his own words, never a clock or a counter).
 - **`Carry on to the court budget`** → go to Step 3.5 with the check unrepeated. **Say what that
   means in one clause**: the days he moved have not been graded, nothing later in a September
   run will grade them, **and the calendar he announces will say those days were moved after the
@@ -1091,8 +1396,8 @@ optional and is described below.**
    than none: it can turn a real booking into a false "out of room".
 2. **Any divisions he is adding**, with his estimated draw sizes. His sizes are **teams and bracket
    capacity, not entries** — confirm that out loud, because reading them as players sizes the whole
-   exercise at half. The tool plans at **75% of each bracket and shows the full-bracket figure
-   alongside**.
+   exercise at half. The tool plans at **the count he states, with his bracket as the ceiling** —
+   14 teams in a 16 bracket are planned as 14, never as three quarters of the 16.
    ⚠ **If Step 1.5 is on, the divisions he is adding are ALREADY in the field.** Do not elicit
    them again and do not hand them to the call a second time — counted twice, the whole answer
    books courts for divisions that exist once. Instead, when reading the answer back, say that
@@ -1141,6 +1446,13 @@ silently throws that check away.
 guarded rather than unconditional. `court_budget` already treats `finals_map=None` as "no calendar
 supplied" and says the finals-day savings were not priced — see the `finals_savings` note below.
 
+⚠ **ON A SEPTEMBER RUN THAT USED THE SEARCH, `fmap` IS NEVER `None` HERE** (BEST-1, run finding 3
+from 2026-08-29). The calendar he picked at Step 2 is already a real `td-finals-map/v1` — the
+`seed` document that step builds — so accepting the map unedited hands a concrete calendar down
+the line and **the finals-day savings are priced instead of reported unpriced.** Carry `seed`
+forward as `fmap` on the accept-the-draft branch rather than passing `None`. Nothing new runs; the
+guard above simply stops being reachable with `None` on that path.
+
 ⚠ **Do NOT drive this from the conversation.** Do not loop over court counts yourself, do not
 print a line per build, and do not ask it for schedules. It runs dozens of real tournaments
 internally and hands back counts and configurations; a search steered turn-by-turn would fill the
@@ -1155,6 +1467,41 @@ window and fall over partway through the afternoon. One call in, one compact ans
   divisions force it; a clean line described as "nothing moves" is a promise the tool cannot keep.
 - **`cushions`** — tight / comfortable / safe. **Lead with comfortable** (R12). Tight is the
   cheapest week that plays at all and leaves him nothing if a draw comes in bigger than estimated.
+- **⛔ THE HOURS AND THE LIGHTS — three lines, all three said, every figure read off `axes`**
+  *(FIX-1, off the 8/29 run's booking findings; R11 discipline)*. He is not booking "courts". He is
+  booking a club, for certain days, for certain hours — and the answer above says nothing about
+  the hours or the floodlights he is paying for. The figures already exist on `budget["axes"]` and
+  went unspoken — the 8/29 run worked its idle hours and its unused floodlit nights out BY HAND,
+  off an answer that was already carrying both. ⚠ **No figure from that run is repeated here and
+  none may be: they are facts about one field on one week** (ruling 12). Say all three lines even
+  where one is empty — **an unsaid line reads as "nothing idle", which is a different answer from
+  "not measured"**:
+
+  > At **`<club>`** you have booked **`<booked_from>`–`<booked_until>`**, and the tournament
+  > plays **`<played_first>`–`<played_last>`** — **`<idle_hours>`** of opening nothing uses.
+  > **`<idle_days>`** club-days go unused across the week — **`<club>`** on **`<days>`**.
+  > **`<club>`** has floodlights booked on **`<nights_booked>`** nights and the tournament plays
+  > under them on **`<nights_used>`** — **`<nights_unused>`** unused.
+
+  ⚠ **EVERY `<slot>` IS READ OFF `axes` AT RUN TIME AND NONE OF THEM IS EVER TYPED**, the same
+  discipline the surplus and refusal readbacks carry. Hours come off `axes["hours"]["clubs"]` —
+  each row's `booked` pair against its `played` pair, and its own `unused_minutes`; club-days off
+  `axes["club_days"]` — `idle_total` and each row's `idle` day list; lights off
+  `axes["lights"]["clubs"]` — `nights_booked`, `nights_used`, `nights_unused`. Name the club by
+  its `club_name`. A session that types a figure here reads it aloud to a real director (ruling
+  12).
+  ⚠ **SAY THE LIGHTS AS LIGHTING AND NEVER CONVERT THEM INTO A COURT NUMBER** — the shipped
+  `lighting` rule's words, and it binds here exactly as it binds in the surplus readback.
+  Floodlights are a club's evening, not two more courts.
+  ⚠ **WHERE AN AXIS IS NOT THERE, SAY THAT — never announce an absence as slack.** `axes` reports
+  on whatever his own clubs and days can carry: **`axes["lights"]` is absent when no club he
+  booked has floodlights at all**, and an `idle_total` of zero means every club-day he booked
+  gets used. Both are answers; say which one you are reading.
+  ⚠ **FACTS BESIDE THE BOOKING LEVER, NEVER ADVICE (R11).** State what sits idle and stop. Do not
+  tell him to shorten a booking, drop a night or give a club back, and **never compute a surplus
+  of your own** — the two obvious measures are both wrong in opposite directions, neither is in
+  the answer, and neither may be put there in conversation (R-10 stands, unchanged). What to do
+  about idle hours is his call and he is the one holding the club relationship.
 - **`finals_savings`** — the finals-day moves that would lower the bill, each re-run for real.
   **Name them as facts, never as advice** (R9): the tool prices his calendar, it never reshapes it.
 - **`out_of_room`** — clubs that cannot supply what the answer needs. This is R9's "the door is
@@ -1255,6 +1602,26 @@ he does not book "courts", he books a club, for certain days, for certain hours.
   his busiest day past his own figure is discovered in January by a player who planned around
   Thursday and finds out they play Friday. A zero-cost release says **"nothing else moves"** —
   say that too, because silence and not-checked must never sound the same.
+
+  **⛔ THE SURPLUS READBACK — THREE SLOTS, ALL THREE SAID, EACH WITH ITS COST.** The deficit
+  direction has a scripted readback and this one did not, so it was read out however the session
+  felt like reading it. Say all three lines even where one is empty — an unsaid line reads as
+  nothing to release, which is a different answer from none found:
+
+  > You have **`<courts>` courts** more than this tournament needs at **`<club>`** — releasing
+  > them **`<cost>`**.
+  > You have **`<club_days>` club-days** you could give back — **`<club>`** on **`<days>`** —
+  > releasing them **`<cost>`**.
+  > You have **`<hours>`** of opening you could give back at **`<club>`**, **`<hours_when>`** —
+  > releasing them **`<cost>`**.
+
+  ⚠ **EVERY `<slot>` IS READ OFF `surplus` AT RUN TIME AND NONE OF THEM IS EVER TYPED**, the same
+  discipline the deficit readback carries. `<cost>` is the line's own `cost` — where it is zero,
+  say **"nothing else moves"** in those words.
+  ⚠ **WHERE `register` READS `facts`, READ `why_no_release` OUT VERBATIM IN PLACE OF ALL THREE
+  LINES** and recommend nothing. No safe level was built, so there is no verified margin behind
+  any release, and the three lines above would each be a recommendation the run cannot stand
+  behind.
 - **`club_not_needed`** — ⚠ **A FACT WITH ITS CONSEQUENCE, NEVER ADVICE** (R11). Say the
   arithmetic and stop. Never *"you don't need it"*. A club is more than its courts, and the tool
   knows the arithmetic and nothing about the relationship.
@@ -1307,6 +1674,12 @@ answer = wwtc_pipeline.try_change(
   carries `source` (`"caller"` = his rules, `"defaults"` = the tool's) and `edited` — the rules
   his idea actually moved. Say which, out loud: *"tested on your rules, with that one rule
   switched off."*
+- ⚠ **EVERY RE-TEST OR WHAT-IF THAT ENDS IN A REFUSAL PRINTS THE FRESH REPORT VERBATIM.** You may
+  summarise on top of the report; never instead of it. His idea gets the same treatment the first
+  refusal got — the whole report, then the four figures read back — because a summary is where the
+  numbers he would act on go missing. Measured 2026-08-28: the what-if re-test was summarised
+  freelance and the fresh report was never printed, so the one thing that changed between the two
+  runs was never on his screen.
 - ⚠ **A court figure derived in chat is exactly how a wrong booking reaches a club.** One real
   build, about half a second on a September field. Never arithmetic in the conversation.
 - ⚠ **It takes COURT edits and RULE edits**, and both matter — the nine bendable rules are rules,
@@ -1405,7 +1778,30 @@ announced = finals_announce.announce_finals_map(
     engine_check=plan.get("engine_check"))                     # the LAST check that ran, or None
 with open("WWTC_2027_announced_calendar.json", "w") as f:      # the same file, rewritten
     json.dump(announced, f, indent=2)
+
+# FIX-1 — the page he can print, written beside the file he keeps.
+with open("WWTC_2027_announced_calendar.html", "w") as f:
+    f.write(finals_announce.render_announced_calendar(announced))
 ```
+
+**⚠ TWO FILES NOW, AND THEY ARE NOT THE SAME KIND OF THING — say which is which.** The **JSON is
+the file of record** and it is the one that goes on the shelf; nothing about that changes. The
+**HTML page is the deliverable he prints and hands out** — every division's finals day, the day
+play begins, what happens if the entries come in bigger or smaller, and whether each day was
+checked. Before FIX-1 there was no page at all and the 8/29 run built one by hand in-session,
+which means the thing the director walked away with was assembled by a session rather than
+rendered off his file.
+
+**The page is rendered off the announced document and re-derives nothing** — every date and every
+sentence on it is copied out of the same record the JSON carries, so the two cannot disagree. It
+carries the fingerprint too, and beside it **both halves of the honesty sentence** in the same
+words you say them here: it catches a file that drifted, it is never proof of who produced it.
+
+**⚠ It refuses a map that was never announced, by name.** If you call it on the block he pasted
+back at Step 3, or on a stamped file whose days were never written, it stops and tells you which
+step comes first. That refusal is the point: a printable calendar rendered off a discarded draft
+is indistinguishable from the real one, and printing it is how a discarded draft becomes the thing
+his players were told.
 
 **⚠ `engine_check` comes off the plan you are holding, and you pass it — the tool never goes
 looking for it.** Hand over the check that most recently ran. If he declined the recheck at Step

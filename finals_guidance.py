@@ -39,6 +39,9 @@ THE TWO RULES THIS MODULE LIVES BY
 
 1. **Absent `engine_check` => nothing happens.** The frozen renderer's output is returned
    byte-for-byte. A TD who never asked for the verdict gets the console that shipped.
+   ⚠ FIX-1 (2026-08-29) added ONE optional argument, `doc_label`, and it does not weaken this:
+   at its default of `None` the returned bytes are unchanged on both paths, and a label set
+   reaches the `<title>` element and nothing else. See `_labelled`.
 2. **Every addition is read-only until Adopt.** Adopt calls the console's own `moveFinal` — the
    shipped drag, no new operation — so `td-finals-map/v1` (§14) is untouched and a zero-drag
    emit still means exactly what it meant. A decoration that writes state is a defect here.
@@ -68,6 +71,13 @@ ANCHOR_CHIP = '<span class="chip" id="chipWarn">0 warnings</span></p>'
 # always had — normal flow, immediately above the board.
 ANCHOR_BOARD = '<div class="wrap">'
 ANCHOR_JS = "</script>"
+# FIX-1 (a) · a FIFTH anchor, used ONLY when the caller supplies `doc_label`. It is the closing
+# tag of the frozen renderer's one `<title>` element (`finals_plan.py:490` builds the text), and
+# the label is appended INSIDE that element rather than the title being rebuilt here — so this
+# layer never re-derives the tournament name and a future change to the shipped title carries
+# through untouched. Pinned and counted like the other four: a frozen file that grows a second
+# `<title>` is a loud failure at generation, not a silently mislabelled tab.
+ANCHOR_TITLE = "</title>"
 
 _GRADES = ("hold", "moves", "blocked", "infeasible")
 
@@ -662,17 +672,47 @@ JS = """
 """
 
 
-def render_guided_finals_console(plan) -> str:
+def _labelled(html, doc_label):
+    """FIX-1 (a) · the run's own name for THIS document, in the `<title>` and nowhere else.
+
+    ⚠ `doc_label=None` RETURNS `html` UNTOUCHED, byte for byte. That is what keeps rule 1 of this
+    module's header true and what `_selftest`'s plain-plan identity assert and
+    `tests/best1_optimized_map.py` part H's console digest both stand on.
+
+    WHY THIS EXISTS. A September run publishes this console three times — Step 2's draft, Step 3's
+    board, and every Step 3a re-check — and until now all three arrived in the director's artifact
+    gallery under one identical name, because the title is built from the tournament name alone.
+    The 8/29 run measured the consequence: the calendar he approved and the proposals he discarded
+    were indistinguishable in the list. The label is RUN-SUPPLIED context, like `published_on` —
+    never a clock and never a counter this layer invents, because either would make two runs of
+    the same inputs produce different bytes.
+
+    It reaches the title element, so it is escaped on the way in — the same two replacements the
+    frozen renderer makes on the tournament name.
+    """
+    if doc_label is None or not str(doc_label).strip():
+        return html
+    _check_anchor(html, ANCHOR_TITLE, "title")
+    label = (str(doc_label).strip()
+             .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    return html.replace(ANCHOR_TITLE, f" — {label}" + ANCHOR_TITLE)
+
+
+def render_guided_finals_console(plan, doc_label=None) -> str:
     """The finals console the run surface writes at Step 2: the frozen renderer's output with
     the verdict drawn on it.
 
     With no `engine_check` in the plan doc this returns `render_finals_console(plan)` unchanged,
     byte for byte — the layer is not "mostly inert", it does not run at all.
+
+    `doc_label` — the run's own name for this document, appended to the `<title>` so a director's
+    gallery can tell one publish from another (FIX-1 (a), off the 8/29 run's finding 6). `None`,
+    the default, is byte-for-byte the output above; see `_labelled`.
     """
     html = FP.render_finals_console(plan)
     ec = plan.get("engine_check")
     if not ec:
-        return html
+        return _labelled(html, doc_label)
 
     for anchor, what in ((ANCHOR_CSS, "stylesheet"), (ANCHOR_CHIP, "chip row"),
                          (ANCHOR_BOARD, "board"), (ANCHOR_JS, "script")):
@@ -711,7 +751,7 @@ def render_guided_finals_console(plan) -> str:
     html = html.replace(ANCHOR_BOARD, '<aside class="fm2-panel" id="fm2panel"></aside>'
                         + ANCHOR_BOARD)
     html = html.replace(ANCHOR_JS, JS.replace("__FM2__", payload) + ANCHOR_JS)
-    return html
+    return _labelled(html, doc_label)
 
 
 def _selftest():

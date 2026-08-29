@@ -363,6 +363,11 @@ def materials_check(levels=(1, 2)):
     optional questions was 8.2's rejected option 2, and a check that "reports and repairs" drifts
     into a refusal one edit at a time unless the rule is written down where it is enforced.
 
+    PRE-1 (Operator ruling 2026-08-29) leaves that invariant exactly as it stands and adds the
+    derived `nothing_usable` flag below: the RUNBOOK holds the run at Step 0.5 when nothing at
+    all could be read, while this function still reports on every state of the materials and
+    still never raises. The threshold is computed here so no session has to invent it.
+
     Read-only and deterministic: it resolves and parses, and writes nothing.
     """
     draws = [_check_draws(int(lv)) for lv in levels]
@@ -372,6 +377,9 @@ def materials_check(levels=(1, 2)):
             "draws": draws,
             "player_lists": lists,
             "ok": not problems,
+            # A fold over the statuses already computed above — no new detection. True only when
+            # NOTHING read: one good file anywhere keeps the director walking through.
+            "nothing_usable": not [f for f in draws + lists if f["status"] == "ok"],
             "problems": [{"kind": f["kind"], "level": f["level"], "status": f["status"],
                           "detail": f["detail"]} for f in problems]}
 
@@ -412,8 +420,15 @@ def materials_check_text(rep):
                              f"{c['detail']}.)")
             else:
                 lines.append(f"    {os.path.basename(c['path'])} is here but will not open.")
+    # Three-way close (PRE-1, Operator ruling 2026-08-29). The middle line was previously the
+    # close on EVERY non-clean report — including one where nothing at all read, which is the one
+    # state where "the run carries on" is not true. It is true of a partial set, so it stays
+    # there unchanged: a director with one bad file walks through.
     if rep["ok"]:
         lines.append("Everything needed is here. Ready to start.")
+    elif rep.get("nothing_usable"):
+        lines.append("Nothing here could be read. The run holds until at least one of these "
+                     "files opens.")
     else:
         lines.append("Anything not sorted out here is not a blocker — the run carries on and "
                      "you type those names in instead.")
