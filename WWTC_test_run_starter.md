@@ -1,6 +1,114 @@
-# WWTC Scheduler — Guided Run (Runbook 8.12)
+# WWTC Scheduler — Guided Run (Runbook 8.17)
 
-*TDA V3.1 · **Runbook 8.12 (2026-08-29) — five things the September run paid for by hand.** No
+*TDA V3.1 · **Runbook 8.17 (2026-08-31) — Step 0.5 counts people, names its files, and types no
+figure.** No lane change, no new module, no new courier stop, no step moves, and the only call in
+this document that changes is what `materials_check` reports back. **The defect:** the materials
+check announced a player total more than twice the size of the tournament. It added the four
+lists' ROW counts together — which counts every player entered in more than one event once per
+event, and then adds the Serve Tennis list, which is a subset of the Tournament Desk one, to its
+own superset. That sentence has been read aloud on every run since 2026-08-08, including one that
+completed and announced a calendar. Worse, a file whose name carries no `L1`/`L2` token answered
+for **every** level at once, so two unlabelled uploads reported all four lists present with no
+Level-1 list in the directory at all — and closed with *"Everything needed is here. Ready to
+start."* **What changes:** the check counts distinct people by USTA ID; an unlabelled file may
+stand in for one level only, and the levels it cannot cover are named instead of being reported
+green; and the readback prints the file it actually read beside each count, naming any same-level
+file it beat. The pick order itself is unchanged. **This step's readback goes to slots** — the
+typed figures leave this document and none arrive, because a figure written here is read aloud to
+a real director as though it were his (ruling 12). The check still never gates and never raises,
+and the partial lane is untouched: a director with one unlabelled file walks through. Operator
+ruling 2026-08-31 (PRE-2).*
+
+*Previously — **Runbook 8.16 (2026-08-30) — September computes first and asks once.** No new module,
+no new courier stop, and **the January branch is byte-identical**. **The defect, off the 8/29
+September run:** to announce one calendar the director answered five scripted stops between the
+search and the readback, and the tool asked before it had earned anything to show — may I check
+your days, then separately what shall I price, then here is your board, then here is your booking
+answer. He approved days before he had any idea what the week would cost him to book, and the
+question that mattered — is this the week you want? — was never asked once with both answers on the
+table. **What changes here, on the September lane only:** the check is no longer offered, it is
+run, and the booking answer is worked out with it as **one silence** with one honest sentence
+naming the wait; the days and the booking answer then arrive **together**, at a **priced board**
+that ends in **one stop** — accept, edit a few days, or go further back — with every exit priced
+off this run's own figures before he picks it; accepting **costs nothing and couriers nothing**,
+and mints an **acceptance record** on the document carrying the fingerprint of the map he accepted,
+the date, and whether he accepted the board as shown or after an edit; the finals-map paste now
+lives **only** on the edit-a-few-days branch, which re-grades without asking again; and the court
+answer's day-move savings leave the standing readback and become **ask-only**, each row now
+carrying what it costs in the shape of his week and the configuration it is priced against.
+**The September run's unconditional stops between the search and the announce readback go 5 → 3**
+(the search offer · the two-calendars choice · the priced-board stop), counted by hand on the
+shipped tree. ⚠ **The document's own elicitation markers go 14 → 15, and that is not a
+contradiction** — the two numbers count different things, and a session reading one for the other
+will report the opposite of what happened. The 5 → 3 is **September's own path**; the 15 is
+**every marker in the document across both lanes**, and it rises by one because Step 2's check ask
+and Step 3a both stay, as **January's** steps, while September's new priced-board stop is added
+beside them. Counted by hand at this cut, on the same caveat STOP-1 recorded: a bare `grep -c` on
+the marker also catches the two lines of the binding control rule that talk *about* stops, and
+reads 16 → 17. ⚠ **The
+incremental re-grade was specified, DRIVEN, and it does not ship.** Grading only the divisions he
+moved and carrying the rest over was measured against a full pass on four graded edits across both
+benches: **202 of 224 carried days agreed and 22 did not**, and the disagreements run the wrong
+way — days a carried grade calls fine that a rebuild calls costly, and two it offers him at all
+that a rebuild says cannot be played. So the re-grade is the whole pass, entered without a second
+question, and the note at that step carries the measurement so nobody re-derives it. Operator
+ruling 2026-08-30 (CF-1).*
+
+*Previously — **Runbook 8.15 (2026-08-30) — the run surface speaks executive, and the standard is
+countable.** No lane change, no new module, no new courier stop, no step moves, and no call in
+this document changes. **The defect, off the 8/29 September run:** the "How the run speaks"
+section was already BINDING and the run was still verbose and full of the tool's own vocabulary.
+Two reasons, and the second is the one nobody had looked at. The rule capped which WORDS a
+session may use and never capped HOW MANY, so a run could be long-winded and fully compliant at
+the same time; and a judgment-word standard ("plain", "concise") is one a session grades itself
+against and always passes. Then the scripts in this document were themselves the violation —
+measured at this cut: **65 scripted texts, 6 of them over forty words, the longest 97, and the
+fork's own ask, the first thing a director ever hears, at 59.** **What changes here:** the
+binding section replaces the judgment words with **four countable caps** — an option is one line,
+twelve words or fewer, action first · a readback leads with the figure and what it means in one
+sentence, and your own words around a result stop at three · mechanism is spoken only when asked ·
+the stranger test decides every sentence; **11 scripted texts are rewritten to them, 759 words
+down to 479**, and the whole run surface's scripted speech goes 1,395 → 1,115 with the count over
+forty words at 6 → 1; and `make_run_bundle.py`'s opening prompt now carries the four caps in six
+lines, so they are the first thing every bundle session reads. ⚠ **The print-it-whole obligations
+are untouched, and the cap says so in its own text** — a report, a refusal report and `sentences`
+are data, not chat, and ruling 12 is not reopened. `LANG-1_glossary.md` is applied and never
+reopened: no word added, none removed. Operator ruling 2026-08-30 (VOICE-1).*
+
+*Previously — **Runbook 8.14 (2026-08-30) — the quieter-week search can be given more time, in
+sittings.** No lane change, no new module, no new courier stop, no step moves. **The defect, off
+the 8/29 September run's own report:** the search used its whole ten minutes, said it was still
+finding better weeks, and offered to keep going — and there was no way to accept. This run surface
+caps one step at ten minutes and backgrounding a long step is forbidden, so the longer single
+search this document told the session to run could not be run at all (OI-B), and the director's
+own question — what would more search time have found? — went unanswered (OI-A item 1). **What
+changes here:** the two-calendars stop gains a third option, **keep searching**, offered only when
+the search says it was still improving; each further sitting starts from the calendar he was just
+shown, is given a named length before it is spent, and reports what THAT sitting bought in the
+same three numbers; and the offer retires itself the moment a sitting runs out of improving moves.
+The engine gains one opt-in parameter and there is still no run-state file — the seed is the
+calendar he already has. Operator ruling 2026-08-30 (RESUME-1, "I want the resumable clock").*
+
+*Previously — **Runbook 8.13 (2026-08-30) — the loop stops and asks, and one field can be kept
+without a console trip.** No lane change, no new module, no step moves, and the three courier
+stops are unchanged. **The defects, all three off the 8/29 September run's own report:** the
+problem-solving loop at the end of Step 3.5 had no ⛔ stop, so a test that found a materially
+better week was read out and walked past — the director had to halt the run himself to say he
+wanted it (OI-2); keeping a one-number change cost a console trip plus Steps 2 and 3 in full, on
+information the session was already holding (OI-3); and the first save of a couriered block was
+hand-transcribed instead of copied, which dropped one added division and corrupted another,
+because nothing in this document had ever said to copy rather than type (OI-C). **What changes
+here:** the problem-solving loop ends in a ⛔ stop — keep this change · test another idea ·
+carry on — fired after every `try_change` that returns, and it prices the keep before he chooses,
+off this run's own measured timings; standing procedure 4 gains ONE inline lane, a single named
+field of the last couriered setup on his explicit instruction, under six obligations that keep the
+tie between his screen and his answer visible; and the same procedure gains the sentence saying a
+couriered block is copied, never retyped. **The run's elicitation stops go 13 → 14** — counted by
+hand at this cut, because a bare `grep -c` on the marker also catches the two lines of the binding
+control rule that talk *about* stops, and reads 15 → 16. Operator ruling 2026-08-30 (STOP-1 —
+OI-2's suggested shape, OI-3's proposed lane, OI-C folded in).*
+
+*Previously — **Runbook 8.12 (2026-08-29) — five things the September run paid for by hand.** No
 lane change, no new courier stop, no step moves; one new module function and one new deliverable.
 **The defects, all five off the 8/29 September run's own report:** every finals console a run
 published arrived in the director's gallery under one identical name, so the calendar he approved
@@ -193,6 +301,29 @@ state IS the blocks you have pasted, which is what makes every one of them safe.
 > code words, no internal ids, no engineering vocabulary — in spoken readbacks, in elicitation
 > prompts, in what you paraphrase off a screen.
 >
+> **FOUR CAPS, AND THEY ARE COUNTABLE** *(VOICE-1, Operator ruling 2026-08-30)*. They replace
+> "plain" and "concise", which were judgment words a session graded itself against and always
+> passed. What was capped was which WORDS you may use; how MANY was never capped at all, so a run
+> could be verbose and fully compliant at the same time — which is what the 8/29 September run
+> was.
+>
+> 1. **An option is one line, twelve words or fewer, action first.** *"Keep this change"* — never
+>    a clause explaining the mechanism behind it, and never a second copy of something the question
+>    above it already said. Two places name a thing rather than an action, both deliberate and both
+>    counted: Step 2's two calendars are named for what each calendar IS (read off the block, never
+>    typed), and Step 6's list is a list of documents.
+> 2. **A readback leads with the figure and what it means, in one sentence — and your own words
+>    around any result stop at three sentences.** The cap counts YOUR commentary. A step's own
+>    instruction to the director — press this, copy that, paste it back — is not commentary, and
+>    ⚠ **a printed document is not commentary either: a report, a refusal report and `sentences`
+>    are DATA, and every step below that says to print one whole and verbatim still means it**
+>    (ruling 12). This cap never shortens one of those and never excuses skipping one.
+> 3. **Mechanism is spoken only when asked.** How the tool arrived at a number is not part of the
+>    number. A direct question about how something works still gets a real, full answer.
+> 4. **The stranger test — check every sentence against this one.** A director who has never seen
+>    this tool acts on the sentence without asking what a word means. If a word would need
+>    explaining, it is the wrong word.
+>
 > **`LANG-1_glossary.md` is the authority on the word for each concept**, and it is closed: a
 > match is named by division, round and players, never `E36-R1-M14`; a final held to a date is a
 > **locked day** and a match held to a court and time is a **locked slot**, never a "pin"; a
@@ -201,7 +332,8 @@ state IS the blocks you have pasted, which is what makes every one of them safe.
 > **courts & days**, never "the slate"; and the document the desk produced is the **Raw Draw**
 > while anything this tool renders is a **System Draw** — say which one, every time (glossary
 > §2a, ruled 2026-08-09; the phrase those two replace named both and distinguished neither).
-> Its **ultra-concise house rule** binds too — say the fact and the consequence, and stop.
+> **It is applied here and never reopened.** The word list says which word; the four caps above
+> say how many, and neither one substitutes for the other.
 >
 > **Real tennis vocabulary stays** — bye, walkover, seed, draw, round robin, Quarterfinals,
 > WTN, FAC II.A, 16-draw. Replacing those would make the tool sound like it does not know the
@@ -661,7 +793,7 @@ said and offer him the switch: *"This session opened as a September planning run
 switch."*, with the options **`Confirm — plan & announce`** and **`Switch — full schedule
 build`**. Name the kind the prompt actually declared, not the one you expect.
 
-**Where nothing declared it**, ask: *"Two kinds of run. **Plan & announce** — months ahead of the tournament: you get a court booking answer and the calendar you announce to your players, built on last season's field as the stand-in. **Full schedule build** — the season's real entries are in: you get the whole schedule, the edit screens and the printouts. Which is this?"*
+**Where nothing declared it**, ask: *"Two kinds of run. **Plan & announce** gives you a court booking answer and the calendar you announce; **full schedule build** gives you the schedule, the edit screens and the printouts. Which is this?"*
 
 Both forms land on the same two routes:
 - **`Plan & announce (the September run)`** → the September path: Steps 0 → 3.6, with
@@ -759,8 +891,20 @@ materials = preflight.materials_check()          # read-only; never raises, neve
 print(preflight.materials_check_text(materials))
 ```
 
-**Read the result back in plain words, with the counts** — *"Draws read: 50 divisions — 4 at
-Level 1, 46 at Level 2; all four player lists, 1,658 players."*
+**Read the result back in plain words, with the counts** — in this shape, and every figure in it
+read off `materials` on the run:
+
+> *"Draws read: `<divisions>` divisions — `<n>` at Level 1, `<n>` at Level 2. `<people>` people on
+> your entry lists: `<n>` at Level 1, `<n>` at Level 2, `<n>` on both."*
+
+⚠ **EVERY `<slot>` IS READ AT RUN TIME AND NONE OF THEM IS EVER TYPED** — the same rule Step 2's
+four-figure readback carries, for the same reason (ruling 12). `materials_check_text` composes
+this line from the files that run actually read, and names each one, so read its output back
+rather than writing your own. Two things it says that a session must not re-word: `<people>`
+counts **people, not rows** — the check joins on USTA ID, so a director entered in three events
+is one person — and the sentence is about **the lists just read**, never "your field". At this
+step the tool holds last year's entries and nothing else; the field is not settled until the
+stand-ins are built.
 
 **Then it goes one of three ways** (PRE-1, Operator ruling 2026-08-29):
 - **Everything read** — go to Step 1, as today. Nothing else needed.
@@ -846,7 +990,7 @@ September 2026, it reads **2026-01-23 → 2026-02-01, 10 days**. The January pat
 unchanged; on the September path, present it as what it is and then ask for next January's:
 
 - **Say what was read, and say plainly that it is last season's.** *"Off your draws I read
-  `<window>` — that's last season's tournament, which is the only one the draws can show me."*
+  `<window>` — that's last season's tournament, not next January's."*
 - **Then say what next January's days ARE, and ask him to confirm them — do not ask him to type
   them.** The 2027 seed below already carries them (2027-01-22 → 2027-01-31, 10 days), so asking
   for something the run is holding would be theatre and would invite a second, disagreeing answer.
@@ -893,7 +1037,7 @@ unchanged; on the September path, present it as what it is and then ask for next
 **Then hand over the link. SAY WHAT THE TOOL READ FIRST** — the readback above goes IN the
 elicitation message, before he opens a screen with fifteen date boxes on it. A wrong date is
 easiest to catch when he is told what to look for, hardest when he is scanning a grid.
-**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"I read your tournament off your own draws as `<window>`, `<the per-venue day counts>`" — and, if there is one, "nothing is scheduled on `<day>`, so I've opened that day at `<club>` for you to confirm or remove." — "Here's the Setup console link: the dates, the courts and the rules are already filled in, so if that matches your tournament there's nothing to edit. Look over the Venues & days and Rules tabs, press Build my setup, then Copy and paste the block back here. Or run the canonical defaults without opening the console at all."*
+**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"I read your tournament off your own draws as `<window>`, `<the per-venue day counts>`."* — and, if there is one, *"Nothing is scheduled on `<day>`, so I've opened it at `<club>` — confirm or remove it."* — then the link: *"Your dates, courts and rules are already filled in. Check the Venues & days and Rules tabs, press Build my setup, then Copy, and paste the block back here."*
 - **`Use the defaults as-is`** → the TD confirms the console's prefilled courts & days + rules and pastes
   the emitted `td-setup/v1` JSON back.
 - **`I edited the setup`** → same path; the TD pastes their edited `td-setup/v1` JSON.
@@ -974,6 +1118,13 @@ print(field.report["added_names"], field.report["invented"],
 From here on, every read of the draws returns the projected field. **Whenever a number
 includes them, say it: the added divisions are estimates, not entries.**
 
+**⚠ HIS SIZES ARE TEAMS AND BRACKET CAPACITY, NOT ENTRIES — say so when you read them back**
+*(moved here at CF-1 from Step 3.5's retired elicitation; the protection is unchanged and it is
+the half of it that was not already written down elsewhere).* The console asks for **Teams (a
+doubles pair is one team)** and a **Draw size**, so reading his numbers as players sizes the
+whole exercise at half. The tool plans at **the count he states, with his bracket as the
+ceiling** — 14 teams in a 16 bracket are planned as 14, never as three quarters of the 16.
+
 **⚠ If it refuses, it is telling you something true — do not work around it.** A run whose
 couriered block carries no added-divisions answer is **refused**, on purpose: the block
 tolerates an unknown key silently, so a misspelled or dropped answer would otherwise price his
@@ -1003,7 +1154,7 @@ Until now Step 2 handed him **one** calendar: worked out from the rounds each di
 as late as each day allows, and defensible — but nothing *chose* it, because there was nothing to
 choose between. This sub-step gives him a second one and lets him pick.
 
-**⛔ ELICIT — your action for this sub-step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the sub-step.** *"Before you look at the finals map: I can spend about eleven minutes looking for a quieter version of your week. It builds your whole tournament over and over, moving one division's final at a time, and keeps the best it finds. At the end you get both calendars — the one worked out from your divisions' rounds, and the one the search found — with three numbers each, and you choose which one the editor opens on. Or go straight to the map."*
+**⛔ ELICIT — your action for this sub-step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the sub-step.** *"I can spend about eleven minutes looking for a quieter version of your week. You get both calendars with three numbers each, and you choose which one the editor opens on."*
 
 - **`Look for a quieter week`** → run:
   ```python
@@ -1048,21 +1199,35 @@ them** (ruling 12). Then elicit:
 
 - **`The calendar as derived`** → `pick = plan["optimized_map"]["calendars"][0]`
 - **`The searched calendar`** → `pick = plan["optimized_map"]["calendars"][1]`
+- **`Keep searching`** → **OFFER THIS THIRD OPTION ONLY WHEN
+  `plan["optimized_map"]["search"]["still_improving"]` IS `true`**, and then go to **keep
+  searching** below. When it is `false` the option is not offered at all — see that section's
+  retirement rule.
+
+⚠ **THE FIRST OPTION IS NAMED FOR WHAT THE CALENDAR ACTUALLY IS.** On the first sitting it is the
+tool's own derivation and reads `The calendar as derived`. **After a sitting that kept searching
+it is the calendar he already has, and it reads `The calendar you have now`** — the block itself
+says which, in `plan["optimized_map"]["calendars"][0]["which"]` (`draft` or `seed`), and
+`sentences` uses the same words. Read the label off that key; never type one from memory.
 
 Then seed the map he picked into the loop that already exists — this is the ordinary re-edit
 courier shape, with the paste replaced by his choice:
 
 ```python
-draft = plan["optimized_map"]["calendars"][0]["finals_day"]
+draft = plan["finals_day"]                     # the tool's own derivation, whatever sittings ran
 seed = {"schema": "td-finals-map/v1", "tournament": plan["tournament"], "confirmed": True,
         "finals_map": dict(pick["finals_day"]),
         "pins": {ev: dt for ev, dt in pick["finals_day"].items() if draft[ev] != dt}}
 ```
 
-…and hand `finals=seed` to whichever branch of the elicitation below he picks
-(`finals_plan(setup, finals=seed, engine_check=True)` for the check, `engine_check=False` for the
-map alone). **From that point the run carries on exactly as it does today** — his calendar is what
-the editor opens on, what Step 3.5 prices and what Step 4 builds.
+…and carry `seed` into **the silent build** below — it is what `finals_plan(setup, finals=seed,
+engine_check=True)` grades and what the booking answer is priced against. His calendar is what the
+board opens on, what the booking answer prices and what Step 4 builds.
+
+⚠ **`draft` IS `plan["finals_day"]`, NOT THE FIRST CALENDAR IN THE BLOCK** — the two are the same
+thing on a first sitting and are NOT the same thing after a resumed one, where the first calendar
+is the seed. `pins` is the TD's moved subset against what the tool derived, so a resumed run that
+read it off the seed would hand the editor a map claiming he had moved nothing.
 
 ⚠ **NEITHER CALENDAR IS THE TOOL'S RECOMMENDATION, AND YOU DO NOT MAKE ONE.** The search can buy
 a much quieter week and cost more courts to book, and the tool neither takes that trade for him
@@ -1074,18 +1239,159 @@ going both ways on the same seed, and a session that tells him what to expect be
 has run is quoting a figure at a real director (ruling 12).
 
 ⚠ **IF THE SEARCH RAN OUT OF TIME WHILE IT WAS STILL IMPROVING, `sentences` SAYS SO — PRINT IT
-AND MEAN IT.** Whether to spend more time is his call. To keep going, re-run the same call with a
-longer allowance (`finals_plan(setup, optimize=True, allowance=<seconds>)`) and **name the new
-wait before starting it.**
+AND MEAN IT.** Whether to spend more time is his call, and **keep searching** below is how he
+spends it. ⚠ **Do not offer him a longer single search.** This surface caps one step at ten
+minutes and backgrounding a long step is forbidden, so a longer allowance is a promise this run
+cannot keep — that was measured live on 8/29 (OI-B), with the search using its whole ten minutes
+and the offer to continue left unanswerable.
+
+#### Keep searching — another sitting, and it says what it bought  *(RESUME-1; Operator ruling 2026-08-30)*
+
+**Offered only when `plan["optimized_map"]["search"]["still_improving"]` is `true`.** The search
+stopped on the clock with better weeks still in front of it; a further sitting picks up from the
+calendar he was just shown and carries on from there.
+
+**⏳ SAY THE LENGTH BEFORE YOU SPEND IT, NEVER AFTER** — the same rule the first sitting follows.
+**About eight minutes** is what a resumed sitting is given, and that is the number he plans
+around. Then run, in the foreground:
+
+```python
+last = plan["optimized_map"]["calendars"][1]["finals_day"]   # the winner just shown to him
+plan = wwtc_pipeline.finals_plan(setup, optimize=True,
+                                 resume_from=dict(last), allowance=480)
+```
+
+⚠ **THE SEED IS THE SEARCH'S WINNER — `calendars[1]` — NOT `pick`.** He chose to keep searching
+instead of choosing a calendar, so there is no `pick` yet; the sitting continues from the best
+week the tool has found so far. Whenever `still_improving` is `true` there are always two
+calendars, so `calendars[1]` is always there to read.
+
+⚠ **RUN IT IN THE FOREGROUND. Never send a long step to the background on the run surface** —
+work handed off between tool calls there dies without saying so (the 2026-08-25 rehearsal).
+
+⚠ **480 SECONDS, AND THE REASON IS THIS SURFACE'S CAP.** The first sitting's ruled 660 finished at
+11.6 minutes on the 8/29 run — inside its band by drift, over the ten-minute cap. A resumed
+sitting is given eight minutes so the drift has somewhere to go. **Read the figure from here; it
+is never asserted from a brief, and never quoted to him as what the sitting will find.**
+
+**Then come straight back to the two calendars above and work it exactly as written.** The block
+has the same shape it always has: the first calendar is where the last sitting ended, the second
+is where this one did, both with all three numbers, and `sentences` is printed VERBATIM. **The
+difference between those two calendars is what these minutes bought** — that is the whole point of
+pricing the first one in full, and it is the answer to the director's own standing question about
+what more search time is worth on his field. ⚠ **Read it off the two calendars in front of you;
+never estimate it, and never predict the next sitting's from the last one's** (ruling 12).
+
+**A sitting can buy nothing, and then it says so.** `choice_required` comes back `false`, there is
+one calendar, and it is the one he already had. Say that in one sentence and move on.
+
+**⚠ THE OFFER RETIRES ITSELF, AND YOU DO NOT RE-OFFER IT.** The moment a sitting comes back with
+`still_improving` `false`, say plainly: **"The search has run out of improving moves."** Then the
+third option is gone from the stop above and the run carries on with the two options it always
+had. A session that offers another sitting after that is selling him time the tool has already
+said it cannot use.
+
+⚠ **THERE IS STILL NO RUN-STATE FILE, AND NONE IS TO BE CREATED.** The seed is the calendar the
+director was shown — it is in the block already in front of you, and it travels the ordinary
+courier way like everything else here. A session writing search progress to disk has taken a road
+nobody asked for; stop and say so.
 
 ⚠ **NOTHING HERE GRADES A DAY HE LATER CHOOSES.** Showing two calendars with their numbers is the
 tool's own two proposals, before he has touched anything. The moment he drags a division the
 existing discipline takes over unchanged: the chip goes neutral, nothing is removed, and the tool
 never tells him his day is worse.
 
-#### Step 2 · the check, and the editor
+#### Step 2 · the silent build — SEPTEMBER PLANNING RUNS ONLY  *(CF-1; Operator ruling 2026-08-30)*
 
-**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Ingest the draws, then check every division's finals day against a full build? The check itself takes about ten minutes — it is what lets the map tell you which days will actually hold."*
+**⚠ LANE GATE, AND IT DECIDES WHETHER THIS STEP ASKS AT ALL.** On a **September planning run**
+the check is not offered — it is run, and the booking answer is worked out with it, as one
+silence. Take the two calls below. **A January run does not come here at all**: it takes *the
+check ask* further down, unchanged, and nothing in this build touches its lane.
+
+**Why it stops asking.** He has just picked his calendar out of two, each priced. Asking whether
+to check it is a question with one useful answer, and it costs him a turn before the tool has
+earned anything to show. So the tool earns both answers first — which days hold, and what to book
+— and asks once, with both of them on the table (**Step 3 · the priced board**).
+
+**⏳ ONE HONEST SENTENCE NAMING THE WAIT, SAID BEFORE THE FIRST CALL AND NEVER AFTER.** A silence
+nobody named is just a stall. Say this, then start:
+
+> I'm building your tournament to grade every finals day and work out what to book. About ten
+> minutes, and you get the days and the booking answer together.
+
+⚠ **TEN MINUTES IS THE CAUTIOUS PROMISE AND IT IS WHAT HE PLANS AROUND** — the same figure the
+check has always carried. **Never quote a faster one**: a number said out loud becomes a promise
+the next field breaks (ruling 12).
+⚠ **RUN BOTH IN THE FOREGROUND. Never send a long step to the background on the run surface** —
+work handed off between tool calls there dies without saying so (the 2026-08-25 rehearsal).
+⚠ **SAY NOTHING BETWEEN THE TWO CALLS.** They are one wait to him. Both print their own progress
+while they run, so the step is never a silent stall.
+
+```python
+plan = wwtc_pipeline.finals_plan(setup, finals=seed, engine_check=True)   # the days, graded
+if "week_refusal" in plan:                       # the silence ENDS here — see the gate below
+    raise SystemExit                             # (stop; do not price a week that has no schedule)
+html = finals_guidance.render_guided_finals_console(                      # the board, verdict on it
+    plan, doc_label="the two calendars")                                  # names THIS publish
+# write html to a file and IMMEDIATELY publish it as a private artifact (7.0) — HOLD the link
+# for Step 3 and do not hand it over yet; the board and the booking answer go over together.
+fmap = seed                                                               # BEST-1: never None here
+budget = wwtc_pipeline.court_budget(
+    slate=setup["slate"],
+    constraints_doc=setup["constraints"],                  # HIS RULES — the other half of the pair
+    finals_map=finals_plan.finals_map_from_doc(fmap) if fmap else None,   # the DAYS, not the doc
+    ceilings=None)                                         # None = read them off the slate
+```
+
+⚠ **THE `week_refusal` LINE IS A GATE, NOT A CRASH.** It is written into the block because the
+two calls are one silence and a session running straight through would price a week that has no
+schedule. In the run you do not raise anything — you **stop, and work the six moves below**.
+
+⚠ **`seed` IS THE CALENDAR HE PICKED, AND ON A SEARCHED SEPTEMBER RUN IT IS NEVER `None`**
+(BEST-1). On the **`Go straight to the map`** branch he never searched, so there is no `seed`:
+pass `finals=None`, carry `fmap = None`, and the booking answer says the finals-day savings were
+not priced — which is true and is reported rather than passed over.
+⚠ **THE THREE THINGS THIS STEP USED TO ELICIT ARE ALL IN YOUR HAND ALREADY — CHECK, DO NOT
+ASSUME.** The court answer used to open by asking for each club's own court count, the divisions
+he is adding, and his finals calendar. On this lane Step 1 carries all three: **Max Courts** is
+on the Setup console's Club Ledger and rides the block, so `ceilings=None` reads it; the divisions
+he is adding went into the field at **Step 1.5**; and the calendar is the one he just picked.
+**Look at the block before you skip the question** — if the setup in your hand carries no court
+ceilings at all, say what blank costs him in one sentence (without it the answer can only ever be
+*"book more courts here"*; with it the tool can also say *"you're out of room here"*) and carry
+on. **Never guess a ceiling for him**: a guessed one can turn a real booking into a false "out of
+room".
+⚠ **THE PAIR IS BOTH HALVES — his courts AND his rules.** Leave `constraints_doc=` off and the
+call STOPS, naming what is missing. If you see that refusal you have handed the step half his
+setup: pass `setup["constraints"]` and run it again. Do **not** work around it with
+`wwtc_pipeline.default_constraints()` — that is for a bench call that genuinely means the tool's
+defaults, and here it re-creates the exact fault the refusal exists to stop.
+⚠ **`finals_plan.finals_map_from_doc` IS THE ONE SANCTIONED UNWRAPPER. Never take the key
+directly as `fmap["finals_map"]`** — it is also the loud courier-typo gate, and it is the only
+thing standing between a mistyped paste and a court answer computed against the wrong calendar.
+⚠ **THE SAME ARGUMENT NAME TAKES TWO SHAPES IN THIS RUN.** `finals_plan(setup, finals=…)` takes
+the whole **document**; `court_budget(finals_map=…)` and `build_combined(finals_map=…)` take the
+**bare** `{division: date}` map from inside it. Hand the budget the document and it stops dead —
+`TypeError: unhashable type: 'dict'`, in 0.0 s, before a single tournament is built.
+⚠ **Do NOT drive the court answer from the conversation.** Do not loop over court counts yourself,
+do not print a line per build, and do not ask it for schedules. One call in, one compact answer
+out.
+
+**⛔ IF THE WEEK REFUSES, THE SILENCE ENDS THERE.** `plan` comes back carrying
+`week_refusal` and no verdict, so there is nothing to price and no board to hand over: go to the
+**six moves** below and work them exactly as written. **Do not run the court answer on a refused
+week** — it would price a week that has no schedule. The refusal branch is untouched by this
+build.
+
+**Then go to Step 3 · the priced board.** Nothing is said to him between the two calls and that
+step; the next thing he hears is the board and the booking answer together.
+
+#### Step 2 · the check ask — JANUARY RUNS ONLY  *(the lane as it has always stood)*
+
+**⚠ THIS ELICITATION IS THE JANUARY ENTRANCE. A September run does not reach it** — it took the
+silent build above. January's branch is unchanged in every respect.
+
+**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Check every division's finals day against a full build? About ten minutes, and it is what tells you which days will actually hold."*
 
 *(Assistant: if he asks whether it is worth running, the recommendation is made on **how big his
 field is and how many days he has** — nothing else. Never recommend for or against it on the
@@ -1104,8 +1410,9 @@ became a recommendation once already.)*
   OWN SITE** (FIX-1, off the 8/29 run's finding 6). A September run publishes this console three
   times or more, and until this label every one of them arrived under the same name — the calendar
   he approved and the proposals he discarded, side by side in his list, indistinguishable. The
-  three labels are **`"the two calendars"`** here, **`"for your edits"`** at Step 3's re-seed and
-  **`"re-check"`** at each Step 3a re-check. Use them as written; you may append his own words
+  three labels are **`"the two calendars"`** here and at the silent build, **`"for your edits"`**
+  at Step 3's re-seed, and **`"re-check"`** at every re-grade — September's *after the edit* and
+  January's Step 3a alike. Use them as written; you may append his own words
   after them, and **never a clock, a date or a counter** — the same rule the announced calendar's
   label follows, and for the same reason: two runs of the same inputs must produce the same file.
   **⏳ SAY THE WAIT BEFORE YOU START IT, NEVER AFTER.** `engine_check=True` builds the whole
@@ -1221,20 +1528,27 @@ became a recommendation once already.)*
 is branch 1, the check declined at the elicitation is branch 2, and `week_refusal` present with
 no `engine_check` is branch 3.
 
-**BRANCH 1 — the check ran and returned a verdict. APPROVED VERBATIM (Operator, 2026-08-23).
+⚠ **WHERE THESE WORDS ARE SAID DEPENDS ON THE LANE (CF-1).** A **January run** says them here, at
+the board, exactly as it always has. A **September planning run** does not hand the board over
+until the booking answer is beside it, so it says **branch 1's first paragraph** at **Step 3 · the
+priced board** — as written, it is still approved verbatim — and holds branch 1's **second**
+paragraph for the *edit a few days* branch, which is the only September branch where a drag and a
+paste happen. Branch 2 is a January branch: September never skips the check. Branch 3 is the
+refusal and is unchanged in both lanes.
+
+**BRANCH 1 — the check ran and returned a verdict. APPROVED VERBATIM (Operator, 2026-08-23;
+swept to the four caps at VOICE-1, 2026-08-30 — the say-it-as-written discipline is unchanged).
 The figures are SLOTS; everything else is said as written:**
 
-> Here's your finals map — every division's finals day, worked out from the rounds each one needs
-> and set as late as that day allows. It's been checked against a full build of your tournament:
-> **`<held>` of `<divisions>` divisions hold on the day they're on. `<flagged>` need a look**, and
-> each of those has a card on the right saying why.
+> Here's your finals map, checked against a full build of your tournament: **`<held>` of
+> `<divisions>` divisions hold on the day they're on, and `<flagged>` need a look** — each of
+> those has a card on the right saying why. The field behind it is last season's entries standing
+> in for next year's, plus the divisions you are adding at your estimated sizes — estimates, not
+> entries.
 >
-> The field behind it is last season's entries standing in for next year's, plus the divisions you
-> are adding at your estimated sizes — estimates, not entries.
->
-> Drag any final to the day you want it. When you're done: **Save my finals days**, then **Copy**,
-> and paste the block back here. If you want to know whether the days you chose hold, say so and
-> I'll re-run the check on them — about ten minutes, as many times as you like.
+> Drag any final to the day you want it, then press **Save my finals days**, **Copy**, and paste
+> the block back here. Say so and I'll re-check the days you choose — about ten minutes, as often
+> as you like.
 
 ⚠ **`<held>`, `<divisions>` and `<flagged>` are READ AT RUN TIME** off
 `plan["engine_check"]["held"]` and `["flagged"]`, with the denominator from the field's own
@@ -1246,13 +1560,11 @@ drop that paragraph rather than telling him real entries are estimates.
 **BRANCH 2 — the check was skipped.** There is no verdict, and the turn must not imply there is
 one. Say so plainly and offer the check:
 
-> Here's your finals map — every division's finals day, worked out from the rounds each one needs
-> and set as late as that day allows. **It has not been checked against a build**, so nothing here
-> tells you which of these days will actually hold.
+> Here's your finals map. **It has not been checked against a build**, so nothing here tells you
+> which of these days will hold.
 >
-> Drag any final to the day you want it. When you're done: **Save my finals days**, then **Copy**,
-> and paste the block back here. If you want the days checked — yours or these — say so and I'll
-> run it: about ten minutes, and it builds your whole tournament to grade them.
+> Drag any final to the day you want it, then press **Save my finals days**, **Copy**, and paste
+> the block back here. Say so and I'll check the days — yours or these — about ten minutes.
 
 **BRANCH 3 — the week was refused (NOMAP-1).** The check ran and returned **no verdict at all**:
 `plan` carries `week_refusal` and no `engine_check`. He gets the refusal report printed verbatim,
@@ -1264,16 +1576,106 @@ still all have to happen:
 > The week as supplied cannot be scheduled, so I could not check the finals days against a build.
 > The report below says why, and every fix in it was re-run for real before you saw it.
 >
-> The map itself survived — it is drafted from the rounds each division needs, not from the build.
-> **It has not been checked.** Once you have changed something, I can run the check on it.
+> The map itself survived, and **it has not been checked**. Once you have changed something, I can
+> run the check on it.
 
 ⚠ **This branch comes back COMPARATIVELY FAST, and you must say so for what it is.** The
 ~300-build grid never starts; what is paid for instead is the refusal's own remedy probes (OI-56:
 up to 35 builds, roughly a minute). **Never call it "the ten minutes".** A director told ten
 minutes and answered in one reasonably concludes something went wrong — and here nothing did.
 
-### Step 3 — Finals-map editor → `td-finals-map/v1`  *(courier stop 2)*
-**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"The finals map is at the link above — drag any finals you want moved (RR-badged divisions move all their group draws; a day too early for a division's rounds is refused with the earliest feasible day named). When you're done, press **Save my finals days**, then **Copy**, and paste the finals map block back here. Or keep the engine's draft as-is."*
+### Step 3 — The board, and the finals-map editor → `td-finals-map/v1`  *(courier stop 2)*
+
+**⚠ TWO ENTRANCES, AND THE RUN'S KIND DECIDES WHICH ONE (CF-1, Operator ruling 2026-08-30).**
+- **A September planning run** enters at **the priced board** below — one look, one stop. It
+  reaches the paste only on that board's *edit a few days* branch.
+- **A January run** enters at **the paste** below, unchanged in every respect.
+
+#### Step 3 · the priced board — SEPTEMBER PLANNING RUNS ONLY  *(CF-1, Operator ruling 2026-08-30)*
+
+**What he gets here is one look and one question.** His days are graded and his booking answer is
+worked out, and they go over together. Until this build they arrived two steps apart with a
+question in between, so he was asked to approve days before he had any idea what the week would
+cost him to book.
+
+**⚠ THE ORDER IS FIXED — the days, then the booking answer, then the stop — and nothing is
+elicited before all three.**
+
+**1 · Hand over the board and say the verdict.** Give him the link you held back at the silent
+build, and say **branch 1's FIRST paragraph, as written** (it is approved verbatim; `<held>`,
+`<divisions>` and `<flagged>` are slots read off `plan["engine_check"]` at run time). ⚠ **Do not
+say branch 1's second paragraph here.** It tells him to drag and paste, and it belongs to the edit
+branch below: said here it asks him to change days before he has seen what they cost.
+
+**2 · Read the booking answer back — the whole discipline at Step 3.5, unchanged.** The two
+numbers and the gap between them, the three hours-and-lights lines, `does_not_fit` or `surplus`,
+`axes`, `daily_cap`, `watchlist`, `out_of_room`, `not_tried` and `partial`, and the three things
+to say out loud every time. **That section is where those rules live and this one does not repeat
+them** — read it and work it. The one thing that has moved is the finals-day savings, which are
+now **ask-only**: see that bullet.
+
+**3 · ⛔ THE ONE STOP, AND EVERY EXIT IS PRICED BEFORE HE PICKS IT.** This is the ask-once half of
+the law: he has both answers in front of him, so he is asked once, about the whole of it.
+
+**Say the three prices in one sentence first, every figure read off THIS run.** Accepting costs
+nothing at all. Editing a few days costs a trip to the board and the days graded again — quote
+**the silent build's own elapsed time**, the one you just spent. Going further back costs a
+console trip and then the same grading, plus the quieter-week search's own elapsed time if he
+wants it looked for again. ⚠ **Never quote a duration from this document** (ruling 12): timings
+move with his field and with the day, and a printed expectation teaches him to read ordinary
+variance as a fault.
+
+**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Accept these days, edit a few, or go further back?"*
+
+- **`Accept these days`** → the days stand as graded and **nothing is couriered** — a round that
+  changes nothing costs nothing. Mint the acceptance record below, then go to **Step 3.5**, where
+  the what-if lane is waiting if he wants to test anything about his booking, and on to **Step
+  3.6** when he does not.
+- **`Edit a few days`** → say branch 1's **second** paragraph now, and go to **the paste** below.
+  That is courier stop 2, and this is the only September branch that reaches it.
+- **`Go further back`** → the standing loop-back, priced. Ask which step he wants — **Step 1** for
+  his courts, days or rules, **Step 2** for another look at the week — and say what it costs in
+  the same breath, off this run's own figures. ⚠ **S-1 §1-E5 binds on the Step 1 road: a new setup
+  invalidates `plan`, so Steps 2 and 3 re-run before Step 3.5 or Step 3.6 are used again.** Say
+  that in one clause as he chooses it, not afterwards.
+
+**⛔ THE ACCEPTANCE RECORD — minted the moment he accepts, and it is what January reads.** *(CF-1;
+the vehicle is MARK-1's guarded pass-through, and no printed page changes.)* Accepting a board is
+a decision, and until this build it left no trace at all: the file he shelved could not say
+whether he had looked at those days and said yes, or whether they were simply the last thing the
+tool produced. Write it onto the document he is holding:
+
+```python
+import finals_publish, finals_plan
+fmap = dict(fmap, _acceptance={
+    "accepted_on": "2026-09-15",              # HIS date, supplied by the run — never a clock
+    "branch": "as shown",                     # or "after an edit", on the edit branch below
+    "map_digest": finals_publish.map_digest(finals_plan.finals_map_from_doc(fmap)),
+})
+```
+
+⚠ **`accepted_on` IS SUPPLIED, NEVER READ OFF A MACHINE CLOCK** — the same rule Step 3.6's
+announce date follows, and for the same reason: a record whose date depends on whose computer
+pressed the button is not a record. Say the date out loud as you write it.
+⚠ **`branch` SAYS HOW HE GOT HERE AND IT IS NOT COSMETIC.** *"as shown"* means he accepted the
+board the tool built; *"after an edit"* means he moved days first and accepted what came back.
+Four months later those are different facts about the same file.
+⚠ **THE FINGERPRINT IS THE MAP HE ACCEPTED, taken through the one sanctioned unwrapper** —
+`finals_map_from_doc`, never `fmap["finals_map"]`. It is deliberately a second fingerprint beside
+the announce stamp's: they agree when the calendar announced is the calendar accepted, and they
+**disagree** if the days were touched in between. That disagreement is the whole point.
+⚠ **THE PRINTED PAGE DOES NOT CHANGE, AND IT MUST NOT.** This is a record for January's read-back,
+not a mark for players. The key rides the announced JSON through the same pass-through
+`_session_edit` rides — `stamp_finals_map` and `announce_finals_map` both carry unknown top-level
+keys, and `finals_map_from_doc` drops it at the gate, so nothing downstream can see it or change
+because of it. A session that puts an acceptance mark on the printed calendar has taken a road
+nobody asked for; stop and say so.
+⚠ **AND IT IS NEVER PROOF OF WHO ACCEPTED.** Whoever can edit the map can recompute the
+fingerprint, exactly as with the announce stamp. It catches a file that drifted; it says nothing
+about authorship. Say both halves if he asks.
+
+#### Step 3 · the paste  *(courier stop 2 — January's entrance, and September's edit branch)*
+**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"The finals map is at the link above — drag any finals you want moved. When you're done, press **Save my finals days**, then **Copy**, and paste the finals map block back here."*
 - **`I edited the finals map`** (or a zero-drag emit) → the TD pastes `td-finals-map/v1`:
   ```python
   fmap = json.loads(pasted_finals)                 # validated loudly at Step 4
@@ -1303,7 +1705,83 @@ minutes and answered in one reasonably concludes something went wrong — and he
 > choice, not a requirement: he can save and go to Step 4 with the check unrepeated, and the
 > build will still report everything it finds at Step 4 and 5.5.
 
-#### Step 3a — Offer the recheck  *(after EVERY finals-map paste)*
+#### Step 3 · after the edit — SEPTEMBER PLANNING RUNS ONLY  *(CF-1, Operator ruling 2026-08-30)*
+
+**⚠ SEPTEMBER DOES NOT ASK HERE ANY MORE, AND THAT IS THE ASK-ONCE HALF OF THE LAW.** He came to
+the board to change days; asking him afterwards whether he wants those days graded is a second
+question about the same decision. So on the September lane the re-grade is not offered — it
+happens — and Step 3a below is **January's step**. Work the two branches in this order:
+
+**FIRST, ASK THE PASTE WHETHER ANYTHING ACTUALLY MOVED** — the same one-line comparison Step 3a
+uses below, and the same reason: both halves are already in your hand.
+
+```python
+moved = sorted(ev for ev, dt in ((fmap or {}).get("finals_map") or {}).items()
+               if plan["finals_day"].get(ev) != dt)          # the days he actually changed
+```
+
+**If `moved` is empty — HE MOVED NOTHING, and that is an acceptance.** Nothing is re-graded,
+because the calendar in his hand is the one the check already graded. Say it plainly — *"you kept
+the days as they were, so there is nothing new to check"* — mint the acceptance record with
+`branch` reading **`"as shown"`** (the map he accepted IS the board the tool built), and go to
+**Step 3.5**. ⚠ **DO NOT SAY THE MOVED-AFTER-THE-CHECK CLAUSE HERE. IT IS FALSE ON THIS BRANCH**
+(FIX-1, off the 8/29 run's finding 4): no day was moved, so the calendar he announces will record
+those days as **checked**. A session that reads the moved-days wording anyway tells a real
+director that his announcement will carry a mark it will not carry, about days he never touched.
+What is true here is: **his days stand exactly as they were graded, and the announced calendar
+will say they were checked.**
+
+**If `moved` is not empty — HE MOVED DAYS, so grade them. No ask.**
+
+**⏳ SAY THE WAIT BEFORE YOU START IT, NEVER AFTER** — the same honest sentence the silent build
+uses, and the same ten-minute promise. Then run, in the foreground:
+
+```python
+plan = wwtc_pipeline.finals_plan(setup, finals=fmap, engine_check=True)
+html = finals_guidance.render_guided_finals_console(plan, doc_label="re-check")
+budget = wwtc_pipeline.court_budget(
+    slate=setup["slate"], constraints_doc=setup["constraints"],
+    finals_map=finals_plan.finals_map_from_doc(fmap), ceilings=None)
+```
+
+**Each re-check publishes under the `"re-check"` label**, so his gallery does not fill with
+identically-named boards (FIX-1; you may append his own words, never a clock or a counter).
+**Then go back to the priced board** and work it exactly as written — his moved days graded, his
+booking answer re-priced beside them, one stop. On the accept branch there, `branch` reads
+**`"after an edit"`**.
+
+⚠ **THE RE-GRADE IS THE WHOLE PASS, AND THAT IS A MEASURED DECISION, NOT AN OVERSIGHT (CF-1).**
+Grading only the divisions he moved and carrying every other division's days over from the
+previous check was specified, driven on both benches, and **it does not agree with a full pass.**
+Measured 2026-08-30, four graded edits — two on the 2026 calibration bench, two on the 2027
+September field, two or three divisions moved each time: **202 of 224 carried days agreed and 22
+did not.** A fifth edit refused the week outright and graded nothing. **The disagreements are in
+the dangerous direction:**
+- days the carried grade called *matches shift to make room* that a rebuild calls **blocked** —
+  one of them at a cost of 13 across two other divisions;
+- and two days the carried grade offered him at all that a rebuild says **cannot be played** —
+  the week refuses with that division there.
+
+**The cause is not a bug to fix.** A day is graded as a difference against the board's own build,
+and moving one division re-flows the whole week, so every other division's days are being measured
+against a board that has changed underneath them. **Do not re-introduce a partial re-grade without
+driving that measurement again**, on both benches, and reading the disagreements rather than the
+percentage.
+
+⚠ **`fmap` is `None` only on a path this lane cannot reach** — the September board always carries
+a real calendar (BEST-1). The guard in the comparison above is written so a session that reaches
+the line anyway gets an empty `moved` and the acceptance branch, never a crash mid-step.
+
+⚠ **This comparison is for the wording and the branch, and for nothing else.** It is not a court
+answer and it is not a validation — `finals_plan.finals_map_from_doc` is still the one sanctioned
+unwrapper and it still runs where it always has. A paste that is wrong in some other way is still
+caught there, loudly.
+
+#### Step 3a — Offer the recheck  *(JANUARY RUNS ONLY — after every finals-map paste)*
+
+**⚠ THIS IS JANUARY'S STEP AND IT IS UNCHANGED.** A September run does not reach it: it took *after
+the edit* above, which grades without asking. Everything below stands exactly as it has stood.
+
 *(S-1 §1-E2. This used to be a line of advice inside the blockquote above — "offer this loop
 whenever he asks what his change did" — which put the loop behind the director knowing to ask
 for it. The board teaches it; the runbook did not offer it. Now it is a step, and it runs every
@@ -1381,31 +1859,21 @@ Step 4. If you are not certain which kind of run you are in, ask before running 
 **What it answers.** Not "can this week be played?" — Steps 4 and 5.5 answer that. This answers
 **"what do I need to book?"**, which the tool could not answer at all before this build.
 
-**Elicit three things first, in plain words. Two of them must not be guessed; the first is
-optional and is described below.**
-1. **Each club's own court count — ASK, never require.** How many courts the club OWNS, not how
-   many he has booked. This is the **Max Courts** box on the Setup console's Club Ledger and it
-   rides the setup block as `locations[].physical_courts`. **Blank is a fine answer and the run
-   continues normally** — the screen already says so, and every court figure the tool produces is
-   complete either way.
-   **Say what blank costs him, in one sentence, and then move on:** without it the answer can only
-   ever be *"book more courts here"*; with it the tool can also say *"you're out of room here"*,
-   and those are different answers he acts on differently. It is the difference between a number
-   to take to the club and a reason to change the week.
-   ⚠ **Do not stall the step on it and do not guess a number for him.** A guessed ceiling is worse
-   than none: it can turn a real booking into a false "out of room".
-2. **Any divisions he is adding**, with his estimated draw sizes. His sizes are **teams and bracket
-   capacity, not entries** — confirm that out loud, because reading them as players sizes the whole
-   exercise at half. The tool plans at **the count he states, with his bracket as the ceiling** —
-   14 teams in a 16 bracket are planned as 14, never as three quarters of the 16.
-   ⚠ **If Step 1.5 is on, the divisions he is adding are ALREADY in the field.** Do not elicit
-   them again and do not hand them to the call a second time — counted twice, the whole answer
-   books courts for divisions that exist once. Instead, when reading the answer back, say that
-   the added divisions are in the numbers as estimates, not entries.
-3. **His finals calendar**, if he has one. Without it the finals-day savings are not priced, and
-   the result says so rather than passing over it in silence.
+**⚠ THE CALL HAS ALREADY RUN, AND THIS STEP NO LONGER ELICITS ANYTHING (CF-1, Operator ruling
+2026-08-30).** `budget` was computed in the **silent build** at Step 2, beside the check, and read
+back at **the priced board** at Step 3. Two things follow and both are the point of the change:
 
-**Then make ONE call and read the answer back.** It loops internally and returns numbers:
+- **This step's three questions are gone.** It used to open by asking for each club's own court
+  count, the divisions he is adding, and his finals calendar — all three of which Step 1 and Step
+  1.5 were already carrying. The rules that governed them are kept where they are still needed:
+  the **Max Courts** guidance is at the silent build, the added-divisions rule is at **Step 1.5**,
+  and the calendar is the one he picked. **Check the block rather than assuming it** — that rule
+  is written out at the silent build.
+- **What this step IS now: the readback discipline below, and the what-if lane.** The readback is
+  worked at the priced board; the what-if lane is this step's headline and it is where he
+  problem-solves his booking. Everything below binds exactly as it always has.
+
+**The call, for reference — it is made ONCE, at the silent build, and never again here:**
 
 ```python
 budget = wwtc_pipeline.court_budget(
@@ -1502,8 +1970,30 @@ window and fall over partway through the afternoon. One call in, one compact ans
   of your own** — the two obvious measures are both wrong in opposite directions, neither is in
   the answer, and neither may be put there in conversation (R-10 stands, unchanged). What to do
   about idle hours is his call and he is the one holding the club relationship.
-- **`finals_savings`** — the finals-day moves that would lower the bill, each re-run for real.
-  **Name them as facts, never as advice** (R9): the tool prices his calendar, it never reshapes it.
+- **`finals_savings` — ASK-ONLY. Say ONE line that it exists, and read the rows out only if he
+  asks for them** *(CF-1, Operator ruling 1 of 2026-08-30, off the 8/29 run's OI-5)*. The standing
+  readback used to list every finals-day move that would lower the bill. It no longer does. The
+  line to say is one sentence — that the answer holds finals-day moves that would lower the court
+  bill, and he can have them — and then stop.
+  **Why it was demoted, measured on his own field:** the tool's day-move offers are the search's
+  own lever and the search has already pulled it, so what arrived at this step were scraps or bad
+  trades. The one the director took on 8/29 saved a court at the cheapest week and **doubled the
+  matches out of the day's order there**, while at the level he is told to book to the answer was
+  **identical before and after**. Offering that unasked is the tool nudging his calendar, and the
+  tool prices his calendar — it never reshapes it.
+  **When he asks, read each row WHOLE — the courts saved, the cost, and the level.** All three are
+  on the row and none of them is ever typed:
+  - `saves_courts` and `total_after` — what the move buys.
+  - `degradation_delta` — what it costs in the shape of his week: matches moved to another day,
+    matches out of the day's order, venue preferences bent, late Level-1 Mixed. **A row read
+    without its delta is the exact gap OI-5 recorded.** Where the delta is zero on a counter, say
+    *"nothing else moves"* on it — silence and not-measured must never sound the same.
+  - `level` — the configuration the saving is priced against. It reads **`floor`**, which is the
+    cheapest week and **not** the level R12 tells you to lead with. **Say that out loud**: the
+    saving may be worth nothing at all at the level he is booking to, and on 8/29 it was worth
+    exactly nothing there.
+  **Name them as facts, never as advice** (R9): the tool prices his calendar, it never reshapes
+  it. Do not rank them, do not pick one, and do not tell him a saving is worth taking.
 - **`out_of_room`** — clubs that cannot supply what the answer needs. This is R9's "the door is
   shut here", and it is a different sentence from "book more".
 - **`watchlist`** — the divisions closest to needing a bigger draw, and the entry count at which
@@ -1687,12 +2177,61 @@ answer = wwtc_pipeline.try_change(
 - ⚠ **Counts only, never a schedule.** Asking it for one is refused, deliberately. Forty
   tournaments through a chat window fills it and the run falls over partway through his
   afternoon.
-- ⚠ **TESTING an idea needs NO re-courier. KEEPING one DOES.** Try as many as he likes here.
-  The moment he wants to keep a change, he returns to the Setup console and emits a new setup —
-  and **S-1 §1-E5 binds: a re-couriered setup invalidates `plan`, so Steps 2 and 3 re-run before
-  Step 3.5 or Step 3.6 are used again.**
+- ⚠ **TESTING an idea is free of the courier lane. KEEPING one is not.** Try as many as he likes
+  here. The moment he wants to keep a change he needs a new setup document — from the Setup
+  console, or, for a single named field on his instruction, from standing procedure 4's inline
+  lane — and **S-1 §1-E5 binds either way: a new setup invalidates `plan`, so Steps 2 and 3 re-run
+  before Step 3.5 or Step 3.6 are used again.** ⚠ **He is never sent down that road by a session's
+  own reading of the answer** — the ⛔ stop at the end of this loop is where he chooses, and its
+  price is read off this run.
 
-**No document comes out of this** (R10). The answer is delivered in conversation.
+**No document comes out of `try_change`** (R10). Its answer is delivered in conversation — counts,
+never a schedule. What he *does* with that answer is the stop below, and that is a different
+question from what the call returns.
+
+---
+
+**⛔ THE STOP AT THE END OF THE LOOP — FIRED AFTER EVERY `try_change` THAT RETURNS, whether it
+found something or found nothing** *(STOP-1, Operator ruling 2026-08-30, off the 8/29 run's
+OI-2).* Measured 2026-08-29: a `try_change` came back with a materially better week, the session
+read the numbers out and went straight on to the next step, and the Operator had to halt the run
+himself to say he wanted it kept. His words: *"The tool must offer the improvement, wait for user
+to respond."* This step already said *"try as many as he likes here"* — as prose, and prose did
+not hold a session to it, which is the same reason Step 2's refusal moves became a numbered
+checklist and Step 3a became a step rather than a line of advice.
+
+⚠ **A test that found nothing still gets the stop.** The temptation is to skip it there, and it is
+the wrong instinct twice over: he is entitled to keep a change that bought him nothing measurable,
+and a stop that fires only on good news teaches him that silence means bad news. Where the test
+changed nothing, say so in the question's first clause and offer the same three options.
+
+⚠ **If the call STOPPED rather than returned** — the missing rules document — there is no result
+to decide about. Fix the call as the warning above says, re-run it, and the stop fires on the
+answer.
+
+**SAY THE PRICE BEFORE HE CHOOSES, AND READ IT OFF THIS RUN.** Keeping a change costs a new setup
+document and then Steps 2 and 3 in full. The figure to quote is **the days check this session has
+already run — its own elapsed time** — plus the quieter-week search's own, if he ran one.
+⚠ **Never quote a duration from this document.** Timings move with his field and with the day; a
+printed expectation teaches him to read ordinary variance as a fault.
+⚠ **ON THE SEPTEMBER LANE THE RE-RUN IS ONE SILENCE, AND THAT IS WHAT YOU QUOTE (CF-1).** Steps 2
+and 3 re-run as the **silent build** — the days graded and the booking answer re-priced together,
+one honest sentence naming the wait, no question in the middle — and land back at **the priced
+board**. Quote it as the one wait it is, not as two.
+
+**⛔ ELICIT — your action for this step IS the tool call. Call the elicitation tool with the options below, then end your turn. Do not run any code, do not write a prose question, do not pause silently — those all count as skipping the step.** *"Keep this change? It needs a new setup and the days check run again — about `<check_time>` on your field, plus `<search_time>` if you want the quieter week looked for as well."*
+- **`Keep this change`** → the keep lane. **One named field** of the setup he last pasted → the
+  inline lane at **standing procedure 4**, on this instruction, under its six obligations —
+  he confirms the edit in plain words before anything uses it. **Anything wider** → back to
+  **Step 1**, where he emits a new setup on the console. Either way **S-1 §1-E5 binds: the new
+  setup invalidates `plan`, so Steps 2 and 3 re-run before Step 3.5 or Step 3.6 are used again** —
+  say that in one clause as he chooses it, not afterwards.
+- **`Test another idea`** → back to the top of this loop. Build it, read the answer back, and this
+  stop fires again. As many times as he likes; nothing here is couriered and nothing is spent.
+- **`Carry on`** → **nothing he tested is kept** — his week stands exactly as the court budget
+  above described it, under the rules and courts he pasted. Say that clause before he takes it. In
+  a September run, go to **Step 3.6**; the days he accepted at the priced board are the days that
+  get announced, and the acceptance record he minted there rides with them.
 
 ### Step 3.6 — Announce the calendar  *(SEPTEMBER PLANNING RUNS ONLY — skip it in a January run)*
 *(PUB-1, Operator decisions 1–4, 2026-08-23. No courier stop: this runs in your own session and
@@ -1727,6 +2266,16 @@ with open("WWTC_2027_announced_calendar.json", "w") as f:                # the f
 If he has already announced a calendar and is doing it again, this refuses and tells you the date
 it would have written over. That is deliberate — announcing twice is a decision he makes out loud,
 not something that happens quietly. Ask him, and only then pass `replace=True`.
+
+**⚠ THE ACCEPTANCE RECORD RIDES THROUGH BOTH CALLS AND YOU DO NOTHING TO CARRY IT (CF-1).** If
+`fmap` carries `_acceptance` from the priced board, `stamp_finals_map` and `announce_finals_map`
+both preserve it — unknown top-level keys pass through, the same lane `_session_edit` travels —
+and `finals_map_from_doc` drops it at the gate, so nothing downstream can see it or behave
+differently because of it. **Do not re-write it here, do not re-date it, and do not put it on the
+printed page.** It is a record for January's read-back: the fingerprint of the map he accepted,
+when he accepted it, and whether he accepted the board as shown or after an edit. **A run that
+reaches Step 3.6 with no acceptance record has skipped the priced board's stop** — go back and
+work it, rather than minting one here for days he never said yes to.
 
 **⚠ Which file goes on the shelf — say this out loud, every time.** You are now holding **two**
 things: the block the TD pasted back at Step 3, and `announced`. **The one he keeps is
@@ -1869,11 +2418,10 @@ fills. If it comes in smaller, Wednesday the 28th — that is what happens at th
 fewer. If it comes in bigger, Monday the 26th."*
 
 **⚠ Where a division carries no SMALLER date, say why, in plain words — never in silence.** A
-missing smaller date reads as an oversight, and it is not one: *"this division is small enough
-that its format could change — if fewer people enter, it may be run as a group rather than a
-bracket, and a group takes longer, not less. The day you announce is the day it starts if it runs
-the way it did last year."* **It still has a growth answer** — the direction that goes the other
-way is on every bracket division, and the line carries it.
+missing smaller date reads as an oversight, and it is not one: *"if fewer people enter, this one
+may run as a group instead of a bracket, and a group takes longer, not less. The day you announce
+holds if it runs as it did last year."* **It still has a growth answer** — the direction that goes
+the other way is on every bracket division, and the line carries it.
 
 **⚠ And where the count itself was never worked out, say that, rather than reading a blank
 aloud.** The line then gives the day play would begin if the division outgrows its bracket, and
@@ -1916,8 +2464,8 @@ read first**, before the days that are fine, because it is the only one he canno
 January. **Both no-room sentences count**, the group one and the bracket one alike; read them all
 before anything else. Then call the elicitation tool with the options below and end your turn. Nothing has
 been announced until he has heard the days he is about to send: *"That's every division's finals
-day and the day play begins, with what happens to each one if the entries come in bigger or
-smaller than last year. Ready to send this out, or do you want to change days first?"*
+day, the day play begins, and what changes if the entries come in bigger or smaller than last
+year. Ready to send?"*
 - **`Send it — these are the days`** → the calendar stands as written; the file you shelved above
   is the one he keeps.
 - **`Hold — I want to change days first`** → go back to Step 3 and hand him the finals board
@@ -2285,6 +2833,49 @@ sheet — REVIEW-1 / D2. That sheet on a printout is a stop, not decoration.)*
    player reachable in both** — about 15 minutes. (Covers the two-reachable-finals case the
    conflict guards cannot see until players are known.)
 4. **Never hand-edit a courier document; shipped consoles only.**
+
+   **AND PERSIST ONE AS AN EXACT BYTE COPY OF THE PASTE — written from the paste itself, never
+   retyped, re-keyed or reconstructed — and check the saved copy against the paste before anything
+   reads it.** *(STOP-1, off the 8/29 run's OI-C. Measured 2026-08-29: a session hand-transcribed
+   the first `td-setup/v1` it was given instead of copying it — one added division vanished and
+   another was written as 12 teams / 16 draw where he had said 5 / 8. It was caught before any
+   engine call and re-saved field for field, so nothing downstream was computed on it, but that
+   was luck and a careful reader, not a rule. This procedure forbade hand-EDITING a courier
+   document and said nothing at all about how to SAVE one.)*
+
+   **⚠ THE ONE INLINE LANE, AND IT IS ONE FIELD WIDE** *(STOP-1, Operator ruling 2026-08-30, off
+   the 8/29 run's OI-3).* For a **single named field** of the last couriered `td-setup/v1`, and
+   **only on his explicit instruction**, the session may derive the new document itself instead of
+   sending him back to the console for one number. What this procedure protects was never the
+   arithmetic — a session can copy a document and change one field correctly. It protects the tie
+   between **what he sees on the screen and what priced his week**: edit a block silently and his
+   Rules tab still reads 70 while the court answer was computed at 80, with nothing on any surface
+   recording the gap. So the lane exists, and all six obligations below bind:
+
+   1. **The couriered original is kept untouched**, written to `outputs/<run>/_session/` before
+      anything is derived from it.
+   2. **The new document is DERIVED from that file by changing that one field — never retyped.**
+      (This is the verbatim rule above, applied to the derived copy.)
+   3. **The edit is read back in plain words and he confirms it BEFORE anything uses it** — the
+      field, the value it had, the value it will have, in his own terms and not in the block's.
+   4. **A `_session_edit` record is written onto the document itself**, carrying: that it is
+      session-derived and not couriered · the instruction that authorised it and its date · the
+      document it was derived from · the field · both values. Invisible is the failure mode, and
+      this record is what makes the edit visible in January.
+   5. **It goes through the same reader a couriered document would, with no bypass** — `_check_setup`,
+      which `finals_plan` and `build_from_setup` both call, so obligation 6's re-run IS the
+      validation. (Measured 2026-08-29 on the adjacent lane: a `_session_edit`-marked
+      `td-finals-map/v1` was put through `finals_plan.finals_map_from_doc`, the one sanctioned
+      unwrapper, and **accepted** — 56 divisions read, the moved division at its new day. An
+      unknown top-level key rides through; it disturbs no validation.)
+   6. **S-1 §1-E5 stands, unchanged and unweakened.** A derived setup invalidates `plan` exactly as
+      a couriered one does, so **Steps 2 and 3 re-run before Step 3.5 or Step 3.6 are used again.**
+      This lane changes who types the document. It changes nothing about what a changed document
+      invalidates, and the re-runs were never the part he was objecting to.
+
+   **More than one field goes back to the console.** The lane is one field wide on purpose:
+   one field is what obligation 3's readback can carry without turning into a form he has to
+   proof-read.
 5. **The data directory holds only the CURRENT year's PDFs.** The retired PDF resolver took
    the alphabetically first match — proved: a stray `25_…` file made it return last year's
    draws silently. The struck module keeps this rule alive for anything else that globs.

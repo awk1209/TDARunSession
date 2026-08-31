@@ -767,19 +767,20 @@
   }
 
   // ---- DIV-1 (rule 44): the ONE division display order, mirrored from division_order.py ------
-  // Men's singles -> Women's singles -> Men's doubles -> Women's doubles -> Mixed Level 1 ->
-  // Mixed Level 2, youngest to oldest inside each. This is the ONE place in the product the key
-  // is written twice, because the browser cannot import Python. `tests/div1_order.py` asserts
-  // the two implementations agree on every name in the committed plan, so a drift fails the
-  // build instead of reaching a printed draw. Reviewed at REVIEW-1 as a known duplication.
+  // Men's singles -> Women's singles -> Men's doubles -> Women's doubles -> Mixed, youngest to
+  // oldest inside each. This is the ONE place in the product the key is written twice, because
+  // the browser cannot import Python. `tests/div1_order.py` asserts the two implementations
+  // agree on every name in the committed plan, so a drift fails the build instead of reaching a
+  // printed draw. Reviewed at REVIEW-1 as a known duplication.
   //
   // DISPLAY ONLY. This changes the order divisions are READ in; it never moves a match. The
   // engine's own within-day order (singles early, mixed midday, gender doubles late) is a
   // different order and lives in the engine.
   //
-  // Which Mixed ages are Level 1 is the one thing the key cannot derive from a name — Level 2
-  // is drawn from the same division list — so it rides on the plan as `mixed_level_1`. The
-  // console never guesses it and never hardcodes a year's split.
+  // DIV-2 (2026-08-30): Mixed is ONE age-ordered block. It used to be two — Level 1 then Level
+  // 2 — and the second started over at the youngest age, so Mixed 30 and Mixed 40 listed below
+  // Mixed 90. `l1` is still taken by all three functions, and still ignored, so no call site
+  // here changes and a plan emitted before this build still sorts correctly on load.
   var DIV_RANK={"men|singles":0,"women|singles":1,"men|doubles":2,"women|doubles":3};
   var DIV_SUFFIX=/\s*—\s*Group\s*(\d+)\s*$/;
   function divParse(name){
@@ -790,11 +791,8 @@
              age: age?+age[1]:0, group: hit?+hit[1]:0, parent: parent };
   }
   function divKey(name, l1){
-    var p=divParse(name), block;
-    if(p.gender==="mixed"){
-      var isL1=(l1||[]).some(function(n){ return String(n).replace(DIV_SUFFIX,"")===p.parent; });
-      block = isL1 ? 4 : 5;
-    } else { block = DIV_RANK[p.gender+"|"+p.etype]; }
+    var p=divParse(name);
+    var block = p.gender==="mixed" ? 4 : DIV_RANK[p.gender+"|"+p.etype];
     return [block, p.age, p.parent, p.group];
   }
   function divCmp(a, b, l1){

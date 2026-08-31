@@ -107,10 +107,13 @@ def order_of_play_by_division(result, mixed_level_1=()):
     """[{division, matches: [row, ... by day/start/court]}, ...] in the TD's division order.
 
     DIV-1 (rule 44): the divisions come out in the ONE display order — men's singles, women's
-    singles, men's doubles, women's doubles, Mixed L1, Mixed L2, youngest to oldest inside each
-    — rather than alphabetically. `mixed_level_1` is the resolved Level-1 Mixed list
-    (`build["mixed_level_1"]`); omitted, every Mixed division sorts into the L2 block. The
-    `None`-last guard is kept: a match with no event still sorts, and still sorts last.
+    singles, men's doubles, women's doubles, Mixed, youngest to oldest inside each — rather
+    than alphabetically. The `None`-last guard is kept: a match with no event still sorts, and
+    still sorts last.
+
+    DIV-2 (2026-08-30): Mixed is ONE age-ordered block across sanction levels. `mixed_level_1`
+    is still accepted — callers pass `build["mixed_level_1"]` — and is now IGNORED for
+    ordering; passing it, passing `[]` and omitting it all give the same order.
     """
     by_div = defaultdict(list)
     for e in result.get("schedule", []):

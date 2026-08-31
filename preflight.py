@@ -277,8 +277,49 @@ def _check_draws(level):
     return rec
 
 
+def _list_people(kind, header, rows):
+    """The distinct PEOPLE in one player list — the USTA IDs, not the row count.
+
+    ROWS ARE NOT PEOPLE. A Tournament Desk export carries a row per player per event, and the
+    Serve Tennis export is a subset of the same people (`wwtc_ingest.py:11`, "ST ⊆ TD"), so
+    adding the four files' row counts together adds a set to its own subset and counts most of
+    the field two or three times over.
+
+    The `int`-then-`str` normalisation is the rule `wwtc_ingest.load_players:397-403` already
+    applies when it keys players, so this count and the field the run actually builds agree on
+    what one person is. It is spelled again here rather than imported: extracting it would edit
+    the module every consumer of player identity depends on, which PRE-2 priced and declined —
+    the duplication is accepted, not overlooked, and is logged as OI-69.
+
+    A blank ID falls back to a normalised `first|last`. Measured 2026-08-31: 0 of the 1,658
+    rows across the four committed lists carry a blank ID, so this is a guard, not a path.
+    """
+    ix = {h: i for i, h in enumerate(header)}
+
+    def cell(row, col):
+        return row[ix[col]] if (col in ix and ix[col] < len(row)) else None
+
+    people = set()
+    for r in rows:
+        # The two exports spell the same column differently — "USTA ID" on Tournament Desk,
+        # "ID" on Serve Tennis — which is the same split `kind` was already decided by above.
+        v = cell(r, "USTA ID" if kind == "td" else "ID")
+        if v is not None and str(v).strip():
+            try:
+                people.add(str(int(v)))
+            except (TypeError, ValueError):
+                people.add(str(v).strip())
+            continue
+        # ...and the two spell the name columns differently too, so both are tried.
+        first = str(cell(r, "First Name") or cell(r, "First name") or "").strip().lower()
+        last = str(cell(r, "Last Name") or cell(r, "Last name") or "").strip().lower()
+        if first or last:
+            people.add(f"{first}|{last}")
+    return people
+
+
 def _check_player_lists(levels):
-    """The TD + ST list for each level: ok / missing / unreadable.
+    """The TD + ST list for each level: ok / unlabelled / missing / unreadable.
 
     THE SPLIT THAT MATTERS: `wwtc_ingest._classify` reads each candidate behind a bare `except`
     and returns `(None, None)` on failure, so a CORRUPT list is skipped exactly like an absent
@@ -318,16 +359,61 @@ def _check_player_lists(levels):
                 m = (_re.search(r"\bL(\d)\b", _os.path.basename(path))
                      or _re.search(r"_L(\d)_", _os.path.basename(path)))
                 lvl = m.group(1) if m else None
-                found.setdefault((kind, lvl), {"path": path, "players": len(rows)})
+                key = (kind, lvl)
+                if key in found:
+                    # PRE-2 (c). `setdefault`'s first-wins PICK ORDER IS UNCHANGED — the file
+                    # that won still wins, and this build does not re-rank candidates. What
+                    # changes is that the ones it beat are kept, so the readback can name them:
+                    # a stale export that sorted first used to take the run silently (OI-67).
+                    found[key]["others"].append(path)
+                else:
+                    found[key] = {"path": path, "players": len(rows), "others": [],
+                                  "people": _list_people(kind, header, rows)}
     out = []
+    # PRE-2 (b) — ONE unlabelled file stands in for ONE level. The `(kind, None)` fallback is
+    # KEPT, because it is what lets a legitimate single-level upload work. What it stops doing
+    # is answering for every level at once: before this build two unlabelled files reported
+    # "4 of 4" with no Level-1 list in the directory at all, and `ok` True (OI-67). The first
+    # level to ask for an absent labelled file still gets the stand-in; any level after that is
+    # told the file is already spoken for. This is a PARTIAL state, never a gate — the level
+    # lands in `problems` and the run carries on (PRE-1, Operator ruling 2026-08-29).
+    claimed = {}                     # kind -> the level its unlabelled file already stands for
     for level in levels:
         for kind in ("td", "st"):
-            hit = found.get((kind, str(level))) or found.get((kind, None))
-            rec = {"kind": kind, "level": str(level), "status": "ok" if hit else "missing",
+            hit = found.get((kind, str(level)))
+            labelled = hit is not None
+            spoken_for = None
+            if hit is None:
+                spare = found.get((kind, None))
+                if spare is not None:
+                    if kind in claimed:
+                        spoken_for = claimed[kind]
+                    else:
+                        claimed[kind] = str(level)
+                        hit = spare
+            rec = {"kind": kind, "level": str(level),
+                   "status": "ok" if hit else ("unlabelled" if spoken_for else "missing"),
                    "path": hit["path"] if hit else None,
-                   "players": hit["players"] if hit else 0, "detail": "", "candidates": []}
+                   "players": hit["players"] if hit else 0, "detail": "", "candidates": [],
+                   # PRE-2 (c) — what the readback needs in order to NAME files rather than
+                   # only count them: whether this file labelled its own level, and every
+                   # same-level candidate the pick above beat.
+                   "labelled": labelled,
+                   "also": [_os.path.basename(p) for p in hit["others"]] if hit else [],
+                   "serves": spoken_for,
+                   # Internal to (a): folded into people counts by `materials_check`, which
+                   # pops it, so the returned report stays plain data.
+                   "_people": hit["people"] if hit else set()}
             if hit:
-                rec["detail"] = f"{hit['players']} players"
+                # `players` KEEPS ITS CURRENT MEANING — rows. Repurposing the key would be a
+                # silent contract change; only the rendered word moves, so the string stops
+                # saying "players" about a number that never counted them.
+                rec["detail"] = f"{hit['players']} rows"
+            elif spoken_for:
+                rec["detail"] = (
+                    f"{_os.path.basename(found[(kind, None)]['path'])} carries no level in its "
+                    f"name and is already being read as the Level-{spoken_for} {kind.upper()} "
+                    f"list. A Level-{level} list needs an 'L{level}' token in the file name.")
             else:
                 # an override pointed at a file, or a file is sitting there that will not open
                 rec["detail"] = (f"No Level-{level} {kind.upper()} player list found. It needs an "
@@ -354,14 +440,19 @@ def materials_check(levels=(1, 2)):
 
     Reports one status per file — **ok** (with counts), **missing** (plus a content-scan naming
     any file actually present that parses like draws, so a MISNAMED file surfaces as a named
-    candidate rather than an absence), **unreadable** (it will not open), or **no-text** (it
-    opens and carries no text layer — the silent failure, made loud).
+    candidate rather than an absence), **unlabelled** (a readable list is here, but it names no
+    level and is already standing in for another one — PRE-2), **unreadable** (it will not
+    open), or **no-text** (it opens and carries no text layer — the silent failure, made loud).
 
     THIS NEVER GATES AND NEVER RAISES. It returns a report for every state of the materials,
     including a completely empty directory. Whatever cannot be repaired in session falls back to
     the console's free-text lane and the run proceeds — blocking a tournament at Step 1 over two
     optional questions was 8.2's rejected option 2, and a check that "reports and repairs" drifts
     into a refusal one edit at a time unless the rule is written down where it is enforced.
+
+    PRE-2 (Operator ruling 2026-08-31) leaves that invariant exactly as it stands too: it
+    changes what counts as a *problem* — a level served by a file that never named it is one —
+    and never whether this function can refuse.
 
     PRE-1 (Operator ruling 2026-08-29) leaves that invariant exactly as it stands and adds the
     derived `nothing_usable` flag below: the RUNBOOK holds the run at Step 0.5 when nothing at
@@ -372,11 +463,30 @@ def materials_check(levels=(1, 2)):
     """
     draws = [_check_draws(int(lv)) for lv in levels]
     lists = _check_player_lists(levels)
+    # PRE-2 (a) — PEOPLE, derived from the files THIS run just read. The reported figure used
+    # to be the sum of the four lists' row counts, which adds a set to its own subset and
+    # counts every multi-event entry again: on the committed 2026 field it announced 1,658 for
+    # a 759-person tournament (OI-67). Nothing here is typed — a level's people are the union
+    # of its own TD and ST lists, and only lists that actually read contribute.
+    by_level, seen, multi = {}, set(), set()
+    for f in lists:
+        ids = f.pop("_people", set())
+        if f["status"] == "ok":
+            by_level.setdefault(f["level"], set()).update(ids)
+    for ids in by_level.values():
+        multi |= (seen & ids)
+        seen |= ids
     problems = [f for f in draws + lists if f["status"] != "ok"]
     return {"schema": MATERIALS_SCHEMA,
             "draws": draws,
             "player_lists": lists,
             "ok": not problems,
+            # Additive, and all three derived above: the overall union, the per-level union,
+            # and the people carried on more than one level's lists — which for the product's
+            # two levels is the intersection, phrased so a third level cannot silently vanish.
+            "people": len(seen),
+            "people_by_level": {lv: len(ids) for lv, ids in by_level.items()},
+            "people_multi_level": len(multi),
             # A fold over the statuses already computed above — no new detection. True only when
             # NOTHING read: one good file anywhere keeps the director walking through.
             "nothing_usable": not [f for f in draws + lists if f["status"] == "ok"],
@@ -397,12 +507,38 @@ def materials_check_text(rep):
         lines.append(f"Draws read: {sum(d['divisions'] for d in draws_ok)} divisions — {per}.")
     lists_ok = [f for f in rep["player_lists"] if f["status"] == "ok"]
     if lists_ok:
-        lines.append(f"Player lists read: {len(lists_ok)} of {len(rep['player_lists'])}, "
-                     f"{sum(f['players'] for f in lists_ok)} players in total.")
+        # PRE-2 (c) — the files are NAMED, not just counted. Every defect this readback used to
+        # hide arrived wearing the same count: wrong file, wrong level and wrong total all read
+        # as "Everything needed is here."
+        named = ", ".join(f"{os.path.basename(f['path'])} ({f['players']} rows)"
+                          for f in lists_ok)
+        lines.append(f"Entry lists read: {len(lists_ok)} of {len(rep['player_lists'])} — "
+                     f"{named}.")
+        # PRE-2 (a) — the people line. Every figure is computed from the files just read, and
+        # the sentence is about THE LISTS: at this step the tool holds last year's entries and
+        # nothing else, so it is not the director's field and must not be described as one.
+        per = ", ".join(f"{n} at Level {lv}"
+                        for lv, n in sorted(rep.get("people_by_level", {}).items()))
+        tail = f": {per}" if per else ""
+        if rep.get("people_multi_level"):
+            both = "on both" if len(rep.get("people_by_level", {})) == 2 else "on more than one"
+            tail += f", {rep['people_multi_level']} {both}"
+        lines.append(f"{rep.get('people', 0)} people on those lists{tail}.")
+    for f in lists_ok:
+        what = f"Level-{f['level']} {f['kind'].upper()}"
+        if not f.get("labelled"):
+            lines.append(f"    {what}: {os.path.basename(f['path'])} does not name a level in "
+                         f"its file name, so it is being read as the Level-{f['level']} list.")
+        if f.get("also"):
+            lines.append(f"    {what}: using {os.path.basename(f['path'])}. Also here, not "
+                         f"used: {', '.join(f['also'])}.")
     trouble = {
         "missing": "not found",
         "unreadable": "will not open",
         "no-text": "opens but has no text in it — this is a picture of the draws, not a printout",
+        # PRE-2 (b). Not missing in the ordinary sense — a readable file is sitting there and is
+        # already answering for another level. This is the state that used to report `ok`.
+        "unlabelled": "not found",
     }
     for f in rep["draws"] + rep["player_lists"]:
         if f["status"] == "ok":
@@ -410,6 +546,14 @@ def materials_check_text(rep):
         what = (f"Level-{f['level']} draws" if f["kind"] == "draws"
                 else f"Level-{f['level']} {f['kind'].upper()} player list")
         lines.append(f"{what}: {trouble.get(f['status'], f['status'])}.")
+        if f["status"] == "unlabelled":
+            stand_in = next((x for x in rep["player_lists"]
+                             if x["kind"] == f["kind"] and x["level"] == f.get("serves")), None)
+            nm = (os.path.basename(stand_in["path"]) if stand_in and stand_in.get("path")
+                  else "the file standing in for it")
+            lines.append(f"    {nm} carries no level in its name, and it is already being read "
+                         f"as the Level-{f['serves']} list. One file cannot be both. A "
+                         f"Level-{f['level']} list needs an 'L{f['level']}' token in its name.")
         for c in f.get("candidates", [])[:3]:
             if "divisions" in c:
                 lines.append(f"    There is a file here that looks like draws: "
