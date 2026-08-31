@@ -40,6 +40,15 @@ for. There is still no PDF. The JSON remains the file of record and the thing th
 shelf; the page is a rendering OF it, pure and deterministic off the document alone, re-deriving
 nothing.
 
+MARK-1 (Operator-approved 2026-08-30, `MARK1_announce_marking_brief.md`) put the last fact the
+page was missing on it: WHOSE HAND MOVED A DAY. A session may now perform the mechanical finals
+move on the director's spoken instruction (STOP-1's lane, taken once as a deviation on 8/29), and
+when it does it writes a record onto the document. The JSON carried that record from the first day
+by accident — `stamp_finals_map` and `announce_finals_map` both pass unknown top-level keys
+through — and the printed page carried none of it. Now the page marks the division and says the
+move in one line, the carry is pinned instead of accidental, and a document without the record
+prints exactly the page it printed before. See `SESSION_EDIT_KEY` and `render_announced_calendar`.
+
 ⚠ NOTHING READS THIS YET, AND THAT IS THE DESIGN. Every reader is January's (GATE-1, RECON-1,
 BADGE-1), and every one is deliberately outside this build. What this module leaves them is a
 record, not a route.
@@ -95,6 +104,45 @@ KEY = "start_days"
 # and inside PUB-1's `announced`: what the announced calendar was COMPUTED FROM. Nothing
 # TD-facing ever speaks this name.
 RECORD_KEY = "computed_from"
+
+# MARK-1 (Operator-approved 2026-08-30, `MARK1_announce_marking_brief.md`). The record a session
+# writes onto the DOCUMENT when it performs the mechanical edit that standing procedure 4 reserves
+# for the console, on the director's spoken instruction — the OI-3 lane taken once on 2026-08-29
+# and made standing by STOP-1. It rides `td-finals-map/v1` as an additive-optional TOP-LEVEL key,
+# outside PUB-1's `announced` block, and every writer in the chain carries it because `dict(doc)`
+# preserves unknown top-level keys.
+#
+# ⚠ THIS BUILD ADOPTS THE SHAPE BY PIN, NOT BY NEW WRITER CODE (brief §"NOT an engine-behaviour
+# change"). Nothing here writes the key; `tests/pub1_publish_stamp.py` part H and
+# `tests/ann1_announced_days.py` part M pin that it survives `stamp_finals_map` and
+# `announce_finals_map` intact, which converts a measured accidental pass-through into a guarded
+# contract. The fields this renderer reads, all optional, all copied and none re-derived:
+#
+#   origin        — "session-derived, not couriered"
+#   instruction   — the director's own words that authorised the edit
+#   authorised_on — the date he gave them
+#   base_document — where the untouched couriered original was preserved
+#   division      — the division whose day was moved
+#   from / to     — the day it was announced on before, and the day it is announced on now
+#
+# ⚠ THE VALIDATOR DROPS THIS KEY AT THE GATE like every other, so nothing downstream of the
+# courier can see it and nothing can change behaviour because of it (`finals_map_from_doc` ends
+# `return dict(fmap)`). Measured live on 2026-08-29: the stamped document with this key on it was
+# put through that gate and ACCEPTED, 56 divisions, reading the moved division at its new day.
+SESSION_EDIT_KEY = "_session_edit"
+
+# MARK-1 · the page's word for AUTHORSHIP. It sits BESIDE the check state and never instead of it,
+# because the two say different things: `_STATE_WORDS` describes what the last full check had to
+# say about a day, and this says whose hand moved it. The 8/29 run is the measured case of the
+# difference mattering — one division read "moved after the check" while 55 read "checked and
+# held", and a reader of the printed page alone could not tell a day the director dragged on a
+# screen from one moved for him on his spoken instruction.
+#
+# ⚠ ONE PHRASE, TWO PLACES, ONE CONSTANT. The row says it as a state and the record clause ends a
+# sentence with it, so the tail is defined once — a page that said it two ways would read as two
+# different facts about the same day.
+INSTRUCTED_TAIL = "on the director's instruction"
+INSTRUCTED_WORDS = f"moved {INSTRUCTED_TAIL}"
 
 # What the last full check had to say about each division's announced finals day. The four are
 # exhaustive by construction and every division gets exactly one.
@@ -657,6 +705,51 @@ def _second_date_sentences(rec):
     return bits
 
 
+def session_edit_of(doc):
+    """MARK-1 · the session-edit record on a couriered DOCUMENT, or None.
+
+    ⚠ Read the DOCUMENT, at the TOP LEVEL. This key sits beside `finals_map` and outside PUB-1's
+    `announced` block — it is a fact about how the document was PRODUCED, not part of the promise
+    the stamp and the days make together. `finals_plan.finals_map_from_doc` drops it at the gate
+    with everything else, so a reader that reaches for the validator's output finds it gone.
+
+    A key that is present but is not a dict returns None: a malformed record cannot be read, and a
+    page that refused to print because of one would withhold the calendar over the marking rather
+    than the days. The absence is the same silence as no key at all.
+    """
+    if not isinstance(doc, dict):
+        return None
+    got = doc.get(SESSION_EDIT_KEY)
+    return got if isinstance(got, dict) else None
+
+
+def _session_edit_sentence(edit):
+    """The session edit as one clause a director can read — the division, both days, the date.
+
+    ⚠ NOTHING IS COMPUTED HERE and nothing is looked up. Every part of the sentence is copied off
+    the record, including the dates, which are printed exactly as the document carries them so the
+    line cannot disagree with the days in the table above it.
+
+    It says what happened and stops (VOICE-1's standard). It never names the key it was read from:
+    `_session_edit` is a field on a file, and a director reading a field name on a printed
+    calendar is reading the inside of the tool (LANG-1 rule 3).
+
+    Written to degrade rather than to fabricate — a record missing the dates still says the day was
+    moved on his instruction, because that fact is the one the printed page exists to carry.
+    """
+    div = str(edit.get("division") or "").strip()
+    frm = str(edit.get("from") or "").strip()
+    to = str(edit.get("to") or "").strip()
+    on = str(edit.get("authorised_on") or "").strip()
+    if div and frm and to:
+        said = f"{div} was moved from {frm} to {to} {INSTRUCTED_TAIL}"
+    elif div:
+        said = f"The day for {div} was {INSTRUCTED_WORDS}"
+    else:
+        said = f"A day on this calendar was {INSTRUCTED_WORDS}"
+    return f"{said}, {on}." if on else f"{said}."
+
+
 def _record_sentence(record):
     """S-9's `computed_from`, as one clause a director can read — no more (the runbook's cap)."""
     if not record:
@@ -698,9 +791,28 @@ def render_announced_calendar(doc) -> str:
     printable calendar rendered off a map that was never announced is exactly the look-alike the
     8/29 run reported: a discarded draft, printed, indistinguishable from the real one.
 
+    MARK-1 (Operator-approved 2026-08-30) · THE PAGE SAYS WHOSE HAND MOVED A DAY. Where the
+    document carries `SESSION_EDIT_KEY` the named division's row reads the check state AND
+    `INSTRUCTED_WORDS` beside it, and one line joins the record clause carrying the division, both
+    days and the authorising date. The gap it closes was measured on the 8/29 run: the JSON of
+    record carried the whole session-edit record and the printed page carried none of it, so the
+    one deliverable the director actually hands out could not tell a day he dragged on a screen
+    from one moved for him on his spoken instruction. The page's own "moved after the check"
+    describes the CHECK; it has never described the AUTHORSHIP and does not now.
+
+    ⚠ WITHOUT THE KEY THE PAGE IS BYTE-FOR-BYTE THE ONE FIX-1 SHIPPED, and that is pinned rather
+    than claimed — part M of the harness holds a digest taken at MARK-1's pre-build head. The
+    default is load-bearing here for the same reason it is for `engine_check` and `optimize`: every
+    calendar announced before this build, and every one announced without a session edit, must
+    print the page it always printed.
+
+    ⚠ THE MARKING IS COPIED, NEVER DERIVED. Nothing here decides that a day was moved on
+    instruction; the document says so and this prints it. A renderer that inferred authorship from
+    the day states would be inventing a verdict about a person.
+
     Reads the DOCUMENT through the shipped accessors (`finals_publish.announced_of`,
-    `start_days_of`, `computed_from_of`) — never by key, and never off the validator's return
-    value, which drops the whole `announced` block at the gate.
+    `start_days_of`, `computed_from_of`, `session_edit_of`) — never by key, and never off the
+    validator's return value, which drops the whole `announced` block at the gate.
     """
     import finals_publish as PUB
     _finals_map_of(doc)                                  # schema first, loudly
@@ -724,18 +836,30 @@ def render_announced_calendar(doc) -> str:
     label = ann.get("label") or ""
     published_on = ann.get("published_on") or ""
 
+    # MARK-1 · whose hand moved a day, where the reader looks. Absent the key this is None and
+    # every line below it is inert, so the page is byte-for-byte the one FIX-1 shipped — the
+    # default-is-load-bearing discipline `engine_check` and `optimize` already run on, pinned in
+    # `tests/ann1_announced_days.py` part M against a digest taken before this was written.
+    edit = session_edit_of(doc)
+    instructed = str((edit or {}).get("division") or "").strip()
+
     rows = []
     for ev in sorted(days):
         rec = days[ev]
         bits = _second_date_sentences(rec)
         state = states.get(ev)
+        # BESIDE the check state, never instead of it: one says what the check found, the other
+        # says whose hand moved the day, and a reader needs both to know what he is holding.
+        was = _STATE_WORDS.get(state, "not recorded")
+        if edit and ev == instructed:
+            was = f"{was} · {INSTRUCTED_WORDS}"
         rows.append(
             "    <tr>"
             f'<td>{_esc(ev)}</td>'
             f'<td class="day">{_esc(rec.get("final") or "")}</td>'
             f'<td class="day">{_esc(rec.get("first_match") or "")}</td>'
             f'<td class="note">{_esc(" · ".join(bits)) if bits else "&mdash;"}</td>'
-            f'<td class="state">{_esc(_STATE_WORDS.get(state, "not recorded"))}</td>'
+            f'<td class="state">{_esc(was)}</td>'
             "</tr>")
 
     digest = ann.get("map_digest")
@@ -746,6 +870,11 @@ def render_announced_calendar(doc) -> str:
         fingerprint = ('    <p class="fingerprint">This calendar was announced without a '
                        'fingerprint, so nothing here can tell you whether the days have been '
                        'edited since.</p>')
+
+    # ⚠ EMPTY, EXACTLY, WHERE THERE IS NO RECORD — the clause is one whole line including its
+    # newline, so a document without the key produces the same bytes as before this build.
+    instruction = (f'    <p class="record">{_esc(_session_edit_sentence(edit))}</p>\n'
+                   if edit else "")
 
     head = _esc(label) or "Announced calendar"
     return f"""<!doctype html>
@@ -760,7 +889,7 @@ def render_announced_calendar(doc) -> str:
     <h1>{head}</h1>
     <p class="pub">Announced {_esc(published_on)}</p>
     <p class="record">{_esc(_record_sentence(record))}</p>
-    <table>
+{instruction}    <table>
       <thead><tr><th>Division</th><th>Final</th><th>Play begins</th>
         <th>If the entries come in bigger or smaller</th><th>The day was</th></tr></thead>
       <tbody>

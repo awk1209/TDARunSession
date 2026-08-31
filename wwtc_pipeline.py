@@ -4033,7 +4033,28 @@ def _cb_finals_savings(probe, base, doc, levels, floor, finals_map, state, out):
 
     Bounded on purpose (§3.4). Without a finals calendar to price there is nothing to move, and
     that is REPORTED rather than passed over in silence — a search that quietly skips a whole
-    step reads to the director as a step that found nothing."""
+    step reads to the director as a step that found nothing.
+
+    ⚠ CF-1 (part d) — WHAT A ROW CARRIES, NEVER WHAT IT FINDS. Three keys are added and nothing
+    else moves: which moves are probed, in which order, at which configuration, and which ones
+    are reported are all exactly what they were. No build is added either — `r` is the same
+    build the `holds` test already spends, and its four counters were being computed and thrown
+    away.
+
+      degradation        — the four counters on the moved calendar at `courts_after`.
+      degradation_delta  — those against the floor's own, signed. OI-5's first gap, measured on
+                           the real September field 2026-08-29: the saving the director took
+                           moved the floor 37 -> 36 courts while matches out of the day's order
+                           went 25 -> 53, and `saves_courts` was the only number the row carried.
+      level              — the configuration the move is priced AGAINST, by name. OI-5's second
+                           gap. It reads `floor` because the pricing stands one court below the
+                           floor and nowhere else: on that same field the comfortable level —
+                           the level R12 tells the run to lead with — was byte-identical before
+                           and after the move. The row says so rather than leaving the director
+                           to assume a saving he can book to.
+
+    ⚠ IT IS A FACT, NOT ADVICE (R9). The row prices the move; it never recommends it, and the
+    delta is read out beside the courts saved, never instead of them."""
     if not finals_map:
         out["not_tried"].append(
             "finals-day savings were not priced — no finals calendar was supplied, so there is "
@@ -4050,6 +4071,11 @@ def _cb_finals_savings(probe, base, doc, levels, floor, finals_map, state, out):
             break
     if cheaper is None:
         return
+    # The floor's own counters, set at `_cb_search`'s step 2 before this runs, are what the delta
+    # is read against. Guarded rather than indexed: a caller that ever reaches here without a
+    # floor gets the absolute counters and no delta, never a delta computed against zeros — a
+    # fabricated "+53 out of order" is worse than a missing key.
+    base_deg = (out.get("floor") or {}).get("degradation") or {}
     for division, day in sorted(finals_map.items()):
         if day not in dates:
             continue
@@ -4066,10 +4092,14 @@ def _cb_finals_savings(probe, base, doc, levels, floor, finals_map, state, out):
                     f"ran out first")
                 return
             if r.get("holds"):
-                out["finals_savings"].append(
-                    {"division": division, "from": day, "to": dates[j],
-                     "courts_after": dict(cheaper), "total_after": sum(cheaper.values()),
-                     "saves_courts": sum(floor.values()) - sum(cheaper.values())})
+                deg = {k: r[k] for k in _CB_COUNTERS}
+                row = {"division": division, "from": day, "to": dates[j],
+                       "courts_after": dict(cheaper), "total_after": sum(cheaper.values()),
+                       "saves_courts": sum(floor.values()) - sum(cheaper.values()),
+                       "level": "floor", "degradation": deg}
+                if all(k in base_deg for k in _CB_COUNTERS):
+                    row["degradation_delta"] = {k: deg[k] - base_deg[k] for k in _CB_COUNTERS}
+                out["finals_savings"].append(row)
     if not out["finals_savings"]:
         out["notes"].append(
             "No single finals-day move makes a cheaper booking work. The calendar is not what is "
@@ -4901,6 +4931,33 @@ def _best_candidates(need, mapped, dates):
             if i >= need.get(ev, 1) - 1 and dt != mapped[ev]]
 
 
+def _best_seed(resume_from, draft_map, dates, need):
+    """RESUME-1: `resume_from` -> the arrangement the climb STARTS FROM, validated like a paste.
+
+    The director's second sitting continues from the calendar he was just shown, so the seed is
+    whatever that calendar is: a full `td-finals-map/v1` doc, or the winning calendar's own
+    `finals_day` dict straight out of `optimized_map`. Both take the SAME courier gate a pasted
+    map takes (`FP.finals_map_from_doc`) rather than a second, laxer one — a seed naming an
+    unknown division, a day outside the slate window, or a finals day too early for the
+    division's rounds is refused loudly HERE, before an allowance is spent searching from it.
+
+    ⚠ NO RUN-STATE FILE, and that is the design rather than an omission: the whole position of a
+    greedy climb is one arrangement, and that arrangement is already in the document the director
+    was shown. The seed therefore travels in the courier lane like every other block, and the
+    runbook's "there is deliberately no run-state file" rule is honoured untouched.
+
+    Divisions the seed does not name keep the draft's day, so a partial map is COMPLETED rather
+    than half-applied — a seed that is missing a division is a seed with a gap, not a new
+    calendar, and the climb needs a day for every division or `_best_candidates` has nothing to
+    move off.
+    """
+    doc = (resume_from
+           if isinstance(resume_from, dict) and resume_from.get("schema") == FP.FINALS_MAP_SCHEMA
+           else {"schema": FP.FINALS_MAP_SCHEMA, "finals_map": resume_from})
+    return {**draft_map, **FP.finals_map_from_doc(doc, dates=dates, known_events=set(need),
+                                                  rounds_by=need)}
+
+
 def _best_legal(reading):
     """LEGAL, and nothing below ranks anything that is not: every match placed, nothing hard
     bent, and the week itself holds. An illegal arrangement is not a worse calendar — it is not
@@ -4937,18 +4994,30 @@ def _best_trio(cal):
 
 def _best_sentences(draft, best, search):
     """What Step 2 says out loud, in the director's language. A RECORD, NEVER ADVICE — the tool
-    prices and proposes and never tells him his own calendar is wrong (§2.5)."""
+    prices and proposes and never tells him his own calendar is wrong (§2.5).
+
+    RESUME-1: on a resumed sitting the first calendar is the one he is ALREADY HOLDING, not a
+    draft the tool derived, so it is named for what it is. Nothing else about these lines moves —
+    the still-improving sentence and the defensible-not-optimal sentence are the same words on
+    both paths, because they say the same true thing on both.
+    """
+    # ⚠ THE DEFAULT PATH'S WORDS ARE UNTOUCHED, not regenerated from a template that happens to
+    # produce them: `resume_from` absent must leave every one of these sentences byte for byte
+    # what it is today, and a shared f-string is exactly how that guarantee gets lost quietly.
+    resumed = draft["which"] == "seed"
+    first = "the calendar you have now" if resumed else "the calendar as derived"
     lines = [f"The tool tried {search['search_builds']} versions of the week in "
              f"{max(1, round(search['seconds'] / 60))} minute(s) and kept the best it found."]
     if best is None:
         lines.append("It found nothing better than the calendar it already had, so there is one "
                      "calendar here, not two.")
         return lines
-    lines.append("Two calendars, and the choice is yours — the one the tool derives on its own, "
-                 "and the one the search found:")
+    lines.append("Two calendars, and the choice is yours — "
+                 + ("the calendar you have now, and the one this sitting found:" if resumed else
+                    "the one the tool derives on its own, and the one the search found:"))
     for cal in (draft, best):
         lines.append(
-            f"  · {'the calendar as derived' if cal is draft else 'the searched calendar'}: "
+            f"  · {first if cal is draft else 'the searched calendar'}: "
             f"busiest day {cal['busiest_day']['matches']} matches "
             f"({_console_day(cal['busiest_day']['day'])}) · "
             f"{cal['courts_to_book']} courts to book · "
@@ -4958,7 +5027,7 @@ def _best_sentences(draft, best, search):
     # about the exact numbers he is being asked to choose between. Winning every leg means
     # STRICTLY better on every leg; anything weaker gets the weaker sentence, with its count.
     d, b = _best_trio(draft), _best_trio(best)
-    for name, x, y in (("The searched calendar", b, d), ("The calendar as derived", d, b)):
+    for name, x, y in (("The searched calendar", b, d), (first[0].upper() + first[1:], d, b)):
         if all(i < j for i, j in zip(x, y)):
             lines.append(f"{name} is better on all three counts.")
             break
@@ -4979,7 +5048,8 @@ def _best_sentences(draft, best, search):
 
 
 def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
-                 finalists=_BEST_FINALISTS, max_builds=None, progress=True, divs=None):
+                 finalists=_BEST_FINALISTS, max_builds=None, progress=True, divs=None,
+                 resume_from=None):
     """The `td-finals-plan/v1` `optimized_map` block (contracts §13) — additive and optional.
 
     Greedy hill-climb over single-division finals moves, EVERY CANDIDATE A REAL BUILD. No
@@ -4988,12 +5058,12 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
     takes the single best improving move; it stops on the first of a local optimum, the
     allowance, or `max_builds`.
 
-    Returns BOTH calendars — the free draft and the search's winner — each with all three of
-    D-54's numbers, plus every finalist's trio, the moves taken, what was spent, and whether the
-    allowance stopped it while it was still improving (§5a, §2.5).
+    Returns BOTH calendars — the arrangement the climb started from and the search's winner —
+    each with all three of D-54's numbers, plus every finalist's trio, the moves taken, what was
+    spent, and whether the allowance stopped it while it was still improving (§5a, §2.5).
 
-      allowance  : seconds for the WHOLE optimization, draft pricing and finalist pricing
-                   included. Default 660 — the Operator's ruled 10-12 minutes, mid-band.
+      allowance  : seconds for the WHOLE optimization, the starting calendar's pricing and the
+                   finalist pricing included. Default 660 — the ruled 10-12 minutes, mid-band.
       finalists  : how many of the arrangements seen get a real `court_budget`. Bends DOWN, never
                    below 1, when a shortened allowance cannot buy that many bills.
       max_builds : THE HARNESS'S DETERMINISTIC LEVER, and the reason it exists is worth stating.
@@ -5003,15 +5073,37 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
                    `budget_builds` and `_engine_check`'s `grid_events`. None = the clock alone.
       progress   : D4's ruling — the wait is named UPFRONT and the search says what it is doing
                    while it runs, never a silent eleven-minute stall at Step 2. False silences it.
+      resume_from: RESUME-1 — THE SECOND SITTING. `None` (the default) is today's behaviour byte
+                   for byte: the climb starts from the free draft. Given a calendar — a
+                   `td-finals-map/v1` doc, or the winner's own `finals_day` dict out of a previous
+                   `optimized_map` — the climb starts THERE instead, and that calendar is priced
+                   in full as the first of the two returned. So each sitting reports what IT
+                   bought: the two calendars in the block are where the last sitting ended and
+                   where this one did, in the same three numbers, and the difference between them
+                   is what the extra minutes were spent on. Only arrangements that beat the SEED
+                   are eligible, and `moves` is read against the seed, for the same reason.
 
     ⚠ TIES BREAK ON A FIXED KEY — the score, then the division name, then the date — never on
-    iteration order. Determinism is a hard invariant and this is where it would be lost.
+    iteration order. Determinism is a hard invariant and this is where it would be lost, and it
+    holds per-seed: same setup + same `resume_from` + same `max_builds` returns the same map.
     """
     t0 = datetime.datetime.now()
     slate_doc, con = setup.get("slate"), setup.get("constraints")
     ov = setup.get("overrides") or None
     dates = list(plan["dates"])
+    # ⚠ `need` IS RESOLVED ONCE AND SHARED, and RESUME-1 is why it is hoisted here: the seed's
+    # validation and the candidate generator must size themselves against the SAME structural
+    # rule, or a seed could be accepted on one reading of a division's rounds and searched under
+    # another. It is the same `_engine_check` rule either way, resolved off the divisions
+    # `finals_plan` already parsed.
+    need = _best_need(setup, levels, divs=divs)
     draft_map = dict(plan["finals_day"])
+    # RESUME-1: the arrangement the climb starts from — the free draft, or the calendar the
+    # director is already holding. Everything below is written against `start_map`; `draft_map`
+    # is kept only because a partial seed inherits its days.
+    start_map = (draft_map if resume_from is None
+                 else _best_seed(resume_from, draft_map, dates, need))
+    which_first = "draft" if resume_from is None else "seed"
     # ⚠ TWO COUNTERS, AND THE SPLIT IS LOAD-BEARING. `total` is every build this call spends, so
     # the cost of the answer rides on the answer (OI-56's discipline). `search` is the hill-climb's
     # own, and it is what `max_builds` bounds — measured the other way round on the first smoke
@@ -5045,11 +5137,14 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
     _say(f"Looking for a quieter week — up to about {max(1, round(allowance / 60))} minute(s). "
          f"You will be shown both calendars at the end and the choice will be yours.")
 
-    # ---- the free draft, priced in full ---------------------------------------------------
+    # ---- the starting calendar, priced in full ---------------------------------------------
     # It is one of the two calendars he is shown, so its court bill is not optional. Timing it
     # is also how the finalists' reserve below gets a MEASURED size instead of a constant.
-    draft_read = _read(draft_map)
-    if not _best_legal(draft_read):
+    # RESUME-1: on a resumed sitting this is the SEED — the calendar the last sitting ended on —
+    # and pricing it in full is what makes the block report what THIS sitting bought rather than
+    # what every sitting so far bought put together.
+    start_read = _read(start_map)
+    if not _best_legal(start_read):
         # ⚠ A WEEK THAT DOES NOT HOLD IS NOT SEARCHED, and the guard is here rather than at the
         # call site so it stands however this is reached. NOMAP-1's rule holds identically: a week
         # no legal schedule can hold has no calendar worth optimizing, every candidate would fail
@@ -5057,6 +5152,10 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
         # gets his draft map and the reasons — which is what that path already hands him. The one
         # `court_budget` call below is skipped too: on a refusing week it answers a different
         # question (`does_not_fit`) and reports no floor to put on a calendar.
+        # ⚠ A REFUSING SEED TAKES THIS SAME EXIT, SAME SHAPE, SAME WORDS (RESUME-1). It is not a
+        # hypothetical: a seed is legal when it is handed over, and a rule edited between two
+        # sittings can make it refuse. The week as supplied — his setup with the calendar he is
+        # holding — is what cannot be scheduled, which is exactly what this says.
         return {"calendars": [], "choice_required": False, "wins_every_leg": None,
                 "finalists": [], "not_searched": "the week as supplied cannot be scheduled, so "
                                                  "there is no calendar to improve",
@@ -5069,11 +5168,12 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
                 "sentences": ["The week as supplied cannot be scheduled, so there is no calendar "
                               "to improve — the reasons and what would fix them are on the plan."]}
     _cb_t0 = datetime.datetime.now()
-    draft_courts, _draft_cb = _courts(draft_map)
+    start_courts, _start_cb = _courts(start_map)
     cb_cost = max((datetime.datetime.now() - _cb_t0).total_seconds(), 0.1)
-    draft_cal = _best_calendar("draft", draft_map, draft_read, draft_courts)
-    _say(f"  the calendar as derived: busiest day {draft_cal['busiest_day']['matches']} · "
-         f"{draft_courts} courts to book · {draft_cal['out_of_order']} out of the daily order")
+    start_cal = _best_calendar(which_first, start_map, start_read, start_courts)
+    _say(f"  {'the calendar you have now' if resume_from is not None else 'the calendar as derived'}"
+         f": busiest day {start_cal['busiest_day']['matches']} · "
+         f"{start_courts} courts to book · {start_cal['out_of_order']} out of the daily order")
 
     # ⚠ THE PRICING RESERVE IS MEASURED, NEVER QUOTED (D-16's lesson, `_engine_check`'s
     # precedent). The finalists' court bills come OUT of the allowance — they are the same wait —
@@ -5085,10 +5185,10 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
     search_deadline = _elapsed() + max(room - n_final * cb_cost, 0.0)
 
     # ---- the hill-climb --------------------------------------------------------------------
-    need = _best_need(setup, levels, divs=divs)
-    current, cur_pair = dict(draft_map), _best_pair(draft_read)
-    draft_pair = cur_pair
-    pool: dict = {}          # arrangement -> (pair, reading). THE DRAFT IS NEVER IN IT (§5a).
+    # (`need` is resolved at the top of this call — the seed's own validation reads it too.)
+    current, cur_pair = dict(start_map), _best_pair(start_read)
+    start_pair = cur_pair
+    pool: dict = {}          # arrangement -> (pair, reading). THE START IS NEVER IN IT (§5a).
     rounds, refused, stopped = 0, 0, "local optimum"
 
     while True:
@@ -5117,10 +5217,13 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
                 refused += 1
                 continue
             pair = _best_pair(r)
-            if pair < draft_pair:
-                # Only arrangements that BEAT the draft on legs 1 and 3 are eligible to be the
-                # optimized calendar. Offering him a second calendar that is worse on the two
-                # legs the search steers on is noise, and §5a's one-calendar case is the answer.
+            if pair < start_pair:
+                # Only arrangements that BEAT THE STARTING CALENDAR on legs 1 and 3 are eligible
+                # to be the optimized calendar. Offering him a second calendar that is worse on the
+                # two legs the search steers on is noise, and §5a's one-calendar case is the
+                # answer. RESUME-1: on a resumed sitting the bar is the SEED, so a sitting that
+                # improves on nothing he already has returns one calendar and says so — which is
+                # the honest report of a sitting that bought nothing.
                 pool[tuple(sorted(trial.items()))] = (pair, r)
             # TIES: score, then division name, then date. Never iteration order.
             if best_here is None or (pair, ev, dt) < best_here[0]:
@@ -5178,36 +5281,40 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
         # the smoke run is why: the winner can come out of the pool of arrangements SEEN during a
         # round that was cut off before its move was applied, and then `rounds` is 0 while the
         # calendar plainly differs — which reported "moves: []" beside a calendar that had moved a
-        # division. The diff against the draft is the fact the director is owed either way.
-        best_cal["moves"] = [{"event": ev, "from": draft_map[ev],
+        # division. The diff against the starting calendar is the fact the director is owed either
+        # way — and on a resumed sitting that is the diff against the SEED, so `moves` names what
+        # THIS sitting moved rather than re-listing what an earlier one already did.
+        best_cal["moves"] = [{"event": ev, "from": start_map[ev],
                               "to": best_cal["finals_day"][ev]}
-                             for ev in sorted(draft_map)
-                             if best_cal["finals_day"].get(ev) != draft_map[ev]]
+                             for ev in sorted(start_map)
+                             if best_cal["finals_day"].get(ev) != start_map[ev]]
         best_cal["still_improving"] = still_improving
 
     search = {"builds": spent["total"], "search_builds": spent["search"],
               "seconds": round(_elapsed(), 1),
-              "rounds": rounds, "candidates": len(_best_candidates(need, draft_map, dates)),
+              "rounds": rounds, "candidates": len(_best_candidates(need, start_map, dates)),
               "refused": refused, "allowance_seconds": allowance,
               "max_builds": max_builds, "stopped": stopped,
               "still_improving": still_improving, "finalists_priced": len(finalist_rows)}
-    calendars = [draft_cal] + ([best_cal] if best_cal is not None else [])
+    calendars = [start_cal] + ([best_cal] if best_cal is not None else [])
     out = {"calendars": calendars,
            # ⚠ ONE CALENDAR, NOT TWO, WHEN THERE IS NOTHING TO CHOOSE (§5a). Asking him to pick
            # between two identical calendars teaches him to stop reading the question.
            "choice_required": best_cal is not None,
            "wins_every_leg": None,
            "finalists": finalist_rows, "search": search,
-           "sentences": _best_sentences(draft_cal, best_cal, search)}
+           "sentences": _best_sentences(start_cal, best_cal, search)}
     if best_cal is not None:
         # Said plainly when it is true — the ruling is that HE chooses, not that the tool
         # withholds what it knows. STRICTLY better on every leg, matching the sentence: a
         # calendar level on two legs has not won them, and `sentences` says the weaker thing.
-        d, b = _best_trio(draft_cal), _best_trio(best_cal)
+        # The loser's name is the starting calendar's OWN label, so a resumed sitting never
+        # reports "draft" about a calendar the tool never drafted.
+        d, b = _best_trio(start_cal), _best_trio(best_cal)
         if all(x < y for x, y in zip(b, d)):
             out["wins_every_leg"] = "optimized"
         elif all(x < y for x, y in zip(d, b)):
-            out["wins_every_leg"] = "draft"
+            out["wins_every_leg"] = which_first
     for line in out["sentences"]:
         _say(line)
     return out
@@ -5215,7 +5322,7 @@ def _best_search(setup, levels, plan, *, allowance=_BEST_ALLOWANCE,
 
 def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_events=None,
                 progress=True, optimize=False, allowance=_BEST_ALLOWANCE,
-                finalists=_BEST_FINALISTS, max_builds=None):
+                finalists=_BEST_FINALISTS, max_builds=None, resume_from=None):
     """F7 step 2: derive the ENGINE's finals map for the TD to confirm — td-setup/v1 ->
     ingest the draws -> Pass-1 master draft -> the td-finals-plan/v1 doc the finals-map
     editor is generated from. `finals` (an earlier td-finals-map/v1) seeds pins for a
@@ -5248,6 +5355,21 @@ def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_
       finalists    : how many arrangements get a real court bill (§2.3 option A).
       max_builds   : bound the search by builds instead of the clock — the deterministic lever
                      a harness needs to prove the same input returns the same map twice.
+
+    RESUME-1 adds the second sitting, on those same terms — OPT-IN and additive:
+
+      resume_from  : the calendar the search starts from — a `td-finals-map/v1` doc, or the
+                     `finals_day` dict of the winner a previous sitting showed him. DEFAULT NONE,
+                     and the default is today's behaviour byte for byte: the search starts from
+                     the free draft. It exists because the run surface caps a step at ten minutes
+                     (the 8/29 run's OI-B), so a longer SINGLE allowance cannot be run there and
+                     more search time can only be bought as further sittings. Each sitting is
+                     priced against where the last one ended, so the block always answers "what
+                     did these minutes buy?" rather than "what did all of them buy?".
+                     ⚠ Read ONLY when `optimize=True`, exactly like `allowance`, `finalists` and
+                     `max_builds` — there is no search to seed otherwise.
+                     ⚠ NO RUN-STATE FILE: the seed is the winner the director was already shown,
+                     so it travels in the courier lane and the runbook's rule stands untouched.
 
     NOMAP-1 adds the other half of `engine_check=True`: if the full build REFUSES the week, this
     still returns a plan doc — the draft is desk-derived and survives — carrying `week_refusal`
@@ -5351,7 +5473,8 @@ def finals_plan(setup, levels=("1", "2"), finals=None, engine_check=False, grid_
     if optimize and "week_refusal" not in plan:
         plan["optimized_map"] = _best_search(setup, levels, plan, allowance=allowance,
                                              finalists=finalists, max_builds=max_builds,
-                                             progress=progress, divs=divs)
+                                             progress=progress, divs=divs,
+                                             resume_from=resume_from)
     return plan
 
 

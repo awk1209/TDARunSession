@@ -173,11 +173,15 @@ def _divisions(placements, events, mixed_level_1=(), finals_map=None):
     ordered rounds (each with its match ids); RR divisions get their team labels.
 
     DIV-1 (rule 44): the array comes out in the TD's ONE division order — men's singles,
-    women's singles, men's doubles, women's doubles, Mixed L1, Mixed L2, youngest to oldest
-    inside each — not the dict-insertion order the engine happened to place matches in. Same
-    entries, same fields; only the order moves, and no shipped reader asserted it (the editor's
-    picker walks the array, `tests/r4_editor.py` reads by name). Measured before this build: 49
-    of 51 rows sat outside that order, the worst travelling 41 places.
+    women's singles, men's doubles, women's doubles, Mixed, youngest to oldest inside each —
+    not the dict-insertion order the engine happened to place matches in. Same entries, same
+    fields; only the order moves, and no shipped reader asserted it (the editor's picker walks
+    the array, `tests/r4_editor.py` reads by name). Measured before that build: 49 of 51 rows
+    sat outside that order, the worst travelling 41 places.
+
+    DIV-2 (2026-08-30): the Mixed clause is ONE age-ordered block, not Level 1 then Level 2.
+    Re-ordered again, never re-shaped — six rows move on the 2026 field and the emitted digest
+    moves with them (`tests/holdvis1_visibility.py` ZERO_EDIT_PLAN / EDITED_PLAN).
     """
     ev_fmt = {e.name: e.fmt for e in (events or [])}
     ev_teams = {e.name: [t.label() for t in e.teams] for e in (events or [])}

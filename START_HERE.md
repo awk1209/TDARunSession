@@ -1,7 +1,7 @@
 # September run bundle — START HERE
 
-Cut from the repo by `make_run_bundle.py` at commit `4fe8246` and verified from the extract.
-**The runbook (`WWTC_test_run_starter.md`, Runbook 8.12) governs the whole run.** This page is not a
+Cut from the repo by `make_run_bundle.py` at commit `a627077` and verified from the extract.
+**The runbook (`WWTC_test_run_starter.md`, Runbook 8.16) governs the whole run.** This page is not a
 procedure and adds nothing to it.
 
 ## The opening prompt — paste this to begin
@@ -10,7 +10,16 @@ procedure and adds nothing to it.
 > a SEPTEMBER PLANNING RUN for the January 2027 calendar. Last year's field is the stand-in;
 > my real venues, dates and rules for next January go in on the Setup console; the divisions
 > I am adding enter at Step 1.5. No commits, no pushes, no repo edits — report findings back
-> to me at the end. Start a WWTC run.
+> to me at the end.
+>
+> How to talk to me, all the way through:
+> — Options: one line, twelve words or fewer, the action first.
+> — Results: the figure and what it means first, then three sentences at most.
+> — Reports: printed whole and word for word — that cap is on your words, never on theirs.
+> — How the tool works: only when I ask, and then properly.
+> — Any word I would have to ask you about is the wrong word.
+>
+> Start a WWTC run.
 
 ## What is in the bundle
 
