@@ -5,8 +5,15 @@ The tournament director reads the same list of divisions in six places — the e
 the finals console, the order-of-play sheet, the CSV he hands out, the draw sheets he prints,
 and the pre-publication report. He gave us one order for all six:
 
-    Men's Singles -> Women's Singles -> Men's Doubles -> Women's Doubles
-      -> Mixed Level 1 -> Mixed Level 2,   youngest to oldest inside each group.
+    Men's Singles -> Women's Singles -> Men's Doubles -> Women's Doubles -> Mixed,
+      youngest to oldest inside each group.
+
+**DIV-2 (2026-08-30, Operator amendment to rule 44): Mixed is ONE block, age-ordered across
+sanction levels.** It used to be two — Level 1 then Level 2 — and the second block started over
+at the youngest age, so Mixed 30 and Mixed 40 printed BELOW Mixed 90. Measured at the amendment:
+6 of 51 rows out of position on the 2026 field, 11 of 57 on the 2027 September field, which is
+where it first became visible because the added divisions filled the ages in between. The Level-1
+list is still passed in and still means what it meant — it simply no longer decides row order.
 
 That order is written HERE, once. No surface re-implements it; every surface imports
 `sort_divisions` or `display_key`. (`schedule_editor.html` carries the one unavoidable second
@@ -19,7 +26,7 @@ implementation — a JS mirror, because the browser cannot import Python — and
 #  `master_schedule._TYPE_ORDER = {"singles": 0, "mixed": 1, "doubles": 2}` is the CLOCK   #
 #  order (register rule 30): singles early, mixed midday, gender doubles late. It is a     #
 #  DIFFERENT ORDER from the one in this file, and the two disagree about Mixed ON PURPOSE  #
-#  — display puts Mixed LAST (ranks 4 and 5), the clock puts it in the MIDDLE (rank 1).    #
+#  — display puts Mixed LAST (rank 4), the clock puts it in the MIDDLE (rank 1).           #
 #  Both are correct. They answer different questions: *what order do I read the divisions  #
 #  in* and *what time of day does this kind of match play*.                                #
 #                                                                                          #
@@ -57,21 +64,30 @@ the TD's sanction that year, never of the division. It is passed in as `mixed_le
 list of division names, from the TD's setup tick-box or derived from which draws file the
 division was printed in. This module never reads a global, never guesses, and never hardcodes
 any year's split.
+
+⚠ **Since DIV-2 the split does not reach the sort key at all** — `display_key` returns the same
+answer for any `mixed_level_1`, and `tests/div1_order.py` part D asserts that independence
+directly. The parameter is KEPT on all three public signatures because nine call sites pass it,
+`mixed_level_1` is still a real property of the sanction, and it still rides `td-editor-plan/v1`
+and still feeds the two venue rules that read it (`main_site_l1_mixed`, `l1_mixed_latest_start`
+— placement-side, and this module reaches neither). Removing the parameter would be a contract
+change, not a display change.
 """
 from __future__ import annotations
 
 import re
 
-# The six display blocks, in the TD's order (2026-08-03). `display_key`'s first term is an
-# index into this tuple.
+# The five display blocks, in the TD's order (2026-08-03; the two Mixed blocks became one at
+# DIV-2, 2026-08-30). `display_key`'s first term is an index into this tuple.
 DISPLAY_ORDER = ("men_singles", "women_singles",
                  "men_doubles", "women_doubles",
-                 "mixed_l1", "mixed_l2")
+                 "mixed")
 
 _GROUP_RANK = {("men", "singles"): 0, ("women", "singles"): 1,
                ("men", "doubles"): 2, ("women", "doubles"): 3}
-_MIXED_L1_RANK = 4
-_MIXED_L2_RANK = 5
+# ONE rank for every Mixed division, whatever level it was sanctioned at (DIV-2). Age is the
+# next term, so the whole Mixed block reads youngest to oldest in one run.
+_MIXED_RANK = 4
 
 # Round-robin group draws are minted as `f"{division} — {group}"` by
 # `wwtc_ingest.load_from_finalized_draws` — one EventSpec per printed group. Measured on the
@@ -144,45 +160,46 @@ def age_is_stated(name) -> bool:
 
 
 def is_mixed(name) -> bool:
-    """True for a Mixed division — the only block whose rank depends on the sanction level."""
+    """True for a Mixed division. Read by `wwtc_pipeline._resolve_mixed_level_1` to check the
+    TD's Level-1 answer names Mixed divisions; since DIV-2 no block rank depends on it."""
     return parse_division(name)[0] == "mixed"
 
 
-def _l1_parents(mixed_level_1):
-    """The Level-1 Mixed list as a set of PARENT names, so a group-suffixed Mixed division
-    resolves against a parent-named tick-box (the TD only ever names parents)."""
-    return {_GROUP_SUFFIX.sub("", str(n)) for n in (mixed_level_1 or ())}
+# `_l1_parents` — the Level-1 list normalised to PARENT names, so a group-suffixed Mixed
+# division resolved against a parent-named tick-box — was DELETED at DIV-2. It existed only to
+# feed the two-block Mixed rank, and one Mixed block has nothing to resolve. It is recorded here
+# rather than silently dropped because its absence is the point: after DIV-2 there is no
+# display-side use for the sanction split, and a surviving helper would say otherwise.
 
 
 def display_key(name, mixed_level_1=()):
     """Rule 44's sort key: `(block, age, parent, group_no)`.
 
-    `mixed_level_1` is the resolved list of division names the TD sanctioned at Level 1 — from
-    his setup tick-box, or derived from which draws file the division was printed in. An empty
-    list is a legal answer and puts every Mixed division in the L2 block; a year with no
-    Level-1 Mixed is a real year.
+    `mixed_level_1` is ACCEPTED AND IGNORED for ordering since DIV-2 (2026-08-30): every Mixed
+    division ranks in one block and sorts by age, whatever level it was sanctioned at. The
+    parameter is kept because nine call sites pass it and the sanction split is still a real
+    fact about the year — it just stopped being a display fact. Passing a list, passing an
+    empty list, and passing nothing all produce the same order, asserted in
+    `tests/div1_order.py` part D.
 
     `parent` is the third term so sibling groups of one division stay together and are then
     ordered by `group_no`; on the 2026 field no two distinct divisions share a (block, age).
     """
     gender, etype, age, group_no, parent = parse_division(name)
-    if gender == "mixed":
-        block = _MIXED_L1_RANK if parent in _l1_parents(mixed_level_1) else _MIXED_L2_RANK
-    else:
-        block = _GROUP_RANK[(gender, etype)]
+    block = _MIXED_RANK if gender == "mixed" else _GROUP_RANK[(gender, etype)]
     return block, age, parent, group_no
 
 
 def sort_divisions(names, mixed_level_1=()):
     """`names` in rule 44's display order. Stable, deterministic, and total — any name sorts,
-    including one outside 2026's 50 and one outside the 80."""
-    l1 = _l1_parents(mixed_level_1)
-    return sorted(names, key=lambda n: display_key(n, l1))
+    including one outside 2026's 50 and one outside the 80. `mixed_level_1` is accepted and
+    ignored since DIV-2 — see `display_key`."""
+    return sorted(names, key=lambda n: display_key(n, mixed_level_1))
 
 
 def sorted_by(names, key, mixed_level_1=()):
     """`names` in display order when each entry is a record rather than a bare string: `key`
     maps an entry to its division name. The one helper the surfaces that sort objects need,
-    so none of them re-implements the lambda."""
-    l1 = _l1_parents(mixed_level_1)
-    return sorted(names, key=lambda n: display_key(key(n), l1))
+    so none of them re-implements the lambda. `mixed_level_1` is accepted and ignored since
+    DIV-2 — see `display_key`."""
+    return sorted(names, key=lambda n: display_key(key(n), mixed_level_1))
